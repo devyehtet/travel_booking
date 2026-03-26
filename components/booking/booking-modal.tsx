@@ -50,10 +50,6 @@ export function BookingModal({ tour, isOpen, onClose }: BookingModalProps) {
   const numericPrice = tour ? extractNumericPrice(tour.price) : 0
   const totalPrice = numericPrice * Number(formData.numberOfGuests || 1)
 
-  if (!tour) {
-    return null
-  }
-
   useEffect(() => {
     if (!isOpen) {
       purchaseTrackedRef.current = false
@@ -61,7 +57,7 @@ export function BookingModal({ tour, isOpen, onClose }: BookingModalProps) {
   }, [isOpen])
 
   useEffect(() => {
-    if (!bookingComplete || !bookingId || purchaseTrackedRef.current) {
+    if (!tour || !bookingComplete || !bookingId || purchaseTrackedRef.current) {
       return
     }
 
@@ -83,6 +79,10 @@ export function BookingModal({ tour, isOpen, onClose }: BookingModalProps) {
 
     purchaseTrackedRef.current = true
   }, [bookingComplete, bookingId, formData.numberOfGuests, numericPrice, totalPrice, tour])
+
+  if (!tour) {
+    return null
+  }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
