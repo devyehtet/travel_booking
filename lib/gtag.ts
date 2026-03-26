@@ -14,6 +14,8 @@ interface PurchaseEventPayload {
   items?: PurchaseItem[]
 }
 
+type GtagEventParams = object
+
 declare global {
   interface Window {
     dataLayer?: unknown[]
@@ -22,9 +24,13 @@ declare global {
 }
 
 export function trackPurchase(payload: PurchaseEventPayload) {
+  trackEvent("purchase", payload)
+}
+
+export function trackEvent(eventName: string, parameters: GtagEventParams = {}) {
   if (typeof window === "undefined" || typeof window.gtag !== "function") {
     return
   }
 
-  window.gtag("event", "purchase", payload)
+  window.gtag("event", eventName, parameters)
 }

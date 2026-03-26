@@ -1,6 +1,8 @@
 import type React from "react"
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { Analytics } from "@vercel/analytics/next"
+import { GtagAutoEvents } from "@/components/tracking/gtag-auto-events"
 import { LocaleProvider } from "@/lib/locale-context"
 import { detectLocaleFromIP } from "@/app/actions/detect-locale"
 import "./globals.css"
@@ -16,7 +18,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 const GTAG_SCRIPT = `window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', '${GOOGLE_ANALYTICS_ID}');
+gtag('config', '${GOOGLE_ANALYTICS_ID}', { send_page_view: false });
 gtag('config', '${GOOGLE_ADS_TAG_ID}');`
 const GTM_NOSCRIPT = `<iframe src="https://www.googletagmanager.com/ns.html?id=${GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`
 
@@ -60,6 +62,9 @@ export default async function RootLayout({
       </head>
       <body className={`font-sans antialiased`}>
         <noscript dangerouslySetInnerHTML={{ __html: GTM_NOSCRIPT }} />
+        <Suspense fallback={null}>
+          <GtagAutoEvents />
+        </Suspense>
         <LocaleProvider detectedLocale={detectedLocale}>{children}</LocaleProvider>
         <Analytics />
       </body>
