@@ -3,66 +3,82 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import {
-  Search,
-  MapPin,
-  Calendar,
-  Users,
-  Clock,
-  Phone,
-  Mail,
-  ArrowLeft,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-} from "lucide-react"
 import Link from "next/link"
-import { getBookingByIdFromStorage, type BookingData } from "@/lib/booking-store"
+import {
+  AlertCircle,
+  ArrowLeft,
+  Calendar,
+  CheckCircle,
+  Clock,
+  FileText,
+  Loader2,
+  Mail,
+  MapPin,
+  Phone,
+  Search,
+  Users,
+} from "lucide-react"
+
+import { lookupStoredBooking } from "@/app/actions/booking"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { formatStoredPrice, isTourBooking, type StoredBooking } from "@/lib/booking-store"
 import { useLocale } from "@/lib/locale-context"
 
 export default function BookingLookupPage() {
-  const { locale } = useLocale()
+  const { locale, formatPrice } = useLocale()
   const isMM = locale === "mm"
 
   const [bookingId, setBookingId] = useState("")
   const [isSearching, setIsSearching] = useState(false)
-  const [booking, setBooking] = useState<BookingData | null>(null)
+  const [booking, setBooking] = useState<StoredBooking | null>(null)
   const [error, setError] = useState("")
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!bookingId.trim()) return
+  const handleSearch = async (event: React.FormEvent) => {
+    event.preventDefault()
+
+    if (!bookingId.trim()) {
+      return
+    }
 
     setIsSearching(true)
     setError("")
     setBooking(null)
 
-    // Small delay for UX
-    setTimeout(() => {
-      const foundBooking = getBookingByIdFromStorage(bookingId.trim())
+    try {
+      const result = await lookupStoredBooking({ bookingId: bookingId.trim() })
 
-      if (foundBooking) {
-        setBooking(foundBooking)
-      } else {
-        setError(isMM ? "ဘွတ်ကင်ကို ရှာမတွေ့ပါ။ သင့် Booking ID ကို စစ်ဆေးပါ။" : "Booking not found. Please check your Booking ID.")
+      if (!result.success) {
+        setError(
+          isMM
+            ? "ဘွတ်ကင် သို့မဟုတ် တောင်းဆိုမှုကို ရှာမတွေ့ပါ။ သင့် ID ကို ပြန်စစ်ပါ။"
+            : "Booking or request not found. Please check your ID.",
+        )
+        return
       }
 
+      setBooking(result.booking)
+    } catch (lookupError) {
+      console.error("Lookup failed:", lookupError)
+      setError(isMM ? "ရှာဖွေရေး မအောင်မြင်ပါ။" : "Lookup failed. Please try again.")
+    } finally {
       setIsSearching(false)
-    }, 500)
+    }
   }
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { label: isMM ? "စောင့်ဆိုင်းဆဲ" : "Pending", variant: "secondary" as const, color: "bg-yellow-500" },
-      confirmed: { label: isMM ? "အတည်ပြုပြီး" : "Confirmed", variant: "default" as const, color: "bg-green-500" },
+      confirmed: { label: isMM ? "အတည်ပြုပြီး" : "Confirmed", variant: "default" as const, color: "bg-green-600" },
+      processing: { label: isMM ? "ဆောင်ရွက်နေသည်" : "Processing", variant: "default" as const, color: "bg-blue-600" },
       cancelled: { label: isMM ? "ပယ်ဖျက်ပြီး" : "Cancelled", variant: "destructive" as const, color: "bg-red-500" },
-      completed: { label: isMM ? "ပြီးဆုံးပြီး" : "Completed", variant: "default" as const, color: "bg-blue-500" },
+      completed: { label: isMM ? "ပြီးဆုံးပြီး" : "Completed", variant: "default" as const, color: "bg-emerald-600" },
     }
+
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
+
     return (
       <Badge variant={config.variant} className={`${config.color} text-white`}>
         {config.label}
@@ -71,16 +87,258 @@ export default function BookingLookupPage() {
   }
 
   const generateWhatsAppLink = () => {
-    if (!booking) return ""
-    const message = encodeURIComponent(
-      `Hi Your Borders Team!\n\nI'd like to check my booking status:\n\nBooking ID: ${booking.id}\nTour: ${booking.tourTitle}\nTravel Date: ${booking.travelDate}\n\nThank you!`,
-    )
-    return `https://wa.me/66812345678?text=${message}` // Replace with your actual WhatsApp number
+    if (!booking) {
+      return ""
+    }
+
+    const message = isTourBooking(booking)
+      ? `Hi Your Borders Team!\n\nI'd like to check my booking status:\n\nBooking ID: ${booking.id}\nTour: ${booking.tourTitle}\nTravel Date: ${booking.travelDate}\n\nThank you!`
+      : `Hi Your Borders Team!\n\nI'd like to check my visa request status:\n\nRequest ID: ${booking.id}\nService: ${booking.serviceTitle}\nPreferred Date: ${booking.preferredDate}\n\nThank you!`
+
+    return `https://wa.me/66812345678?text=${encodeURIComponent(message)}`
   }
+
+  const renderTourDetails = () => {
+    if (!booking || !isTourBooking(booking)) {
+      return null
+    }
+
+    return (
+      <>
+        <div className="bg-muted/50 rounded-lg p-4">
+          <h4 className={`font-semibold mb-3 flex items-center gap-2 ${isMM ? "font-myanmar" : ""}`}>
+            <MapPin className="h-4 w-4 text-primary" />
+            {isMM ? "ခရီးစဉ် အချက်အလက်" : "Tour Information"}
+          </h4>
+          <div className="space-y-2">
+            <p className="font-medium text-lg">{booking.tourTitle}</p>
+            <p className="text-sm text-muted-foreground">{booking.tourLocation}</p>
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                {new Date(booking.travelDate).toLocaleDateString(isMM ? "my-MM" : "en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </span>
+              <span className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                {booking.numberOfGuests} {isMM ? "ဦး" : booking.numberOfGuests === 1 ? "Guest" : "Guests"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="bg-muted/50 rounded-lg p-4">
+            <h4 className={`font-semibold mb-3 ${isMM ? "font-myanmar" : ""}`}>
+              {isMM ? "ဆက်သွယ်ရန် အချက်အလက်" : "Contact Details"}
+            </h4>
+            <div className="space-y-2 text-sm">
+              <p className="font-medium">{booking.fullName}</p>
+              <p className="flex items-center gap-2 text-muted-foreground">
+                <Mail className="h-4 w-4" /> {booking.email}
+              </p>
+              <p className="flex items-center gap-2 text-muted-foreground">
+                <Phone className="h-4 w-4" /> {booking.phone}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-muted/50 rounded-lg p-4">
+            <h4 className={`font-semibold mb-3 ${isMM ? "font-myanmar" : ""}`}>
+              {isMM ? "ဘွတ်ကင် အချက်အလက်" : "Booking Info"}
+            </h4>
+            <div className="space-y-2 text-sm">
+              <p className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">{isMM ? "ဘွတ်ကင်ရက်" : "Booked on"}:</span>
+                <span>{new Date(booking.createdAt).toLocaleDateString()}</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="text-muted-foreground">{isMM ? "စုစုပေါင်း" : "Total"}:</span>
+                <span className="font-semibold text-primary">{formatPrice(booking.totalPrice)}</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="text-muted-foreground">{isMM ? "တစ်ဦးချင်း" : "Package Price"}:</span>
+                <span>{formatStoredPrice(booking.tourPrice)}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {booking.specialRequests ? (
+          <div className="bg-muted/50 rounded-lg p-4">
+            <h4 className={`font-semibold mb-2 ${isMM ? "font-myanmar" : ""}`}>
+              {isMM ? "အထူးတောင်းဆိုချက်များ" : "Special Requests"}
+            </h4>
+            <p className="text-sm text-muted-foreground">{booking.specialRequests}</p>
+          </div>
+        ) : null}
+      </>
+    )
+  }
+
+  const renderVisaDetails = () => {
+    if (!booking || isTourBooking(booking)) {
+      return null
+    }
+
+    return (
+      <>
+        <div className="bg-muted/50 rounded-lg p-4">
+          <h4 className={`font-semibold mb-3 flex items-center gap-2 ${isMM ? "font-myanmar" : ""}`}>
+            <FileText className="h-4 w-4 text-primary" />
+            {isMM ? "ဝန်ဆောင်မှု အချက်အလက်" : "Service Information"}
+          </h4>
+          <div className="space-y-2">
+            <p className="font-medium text-lg">{booking.serviceTitle}</p>
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                {new Date(booking.preferredDate).toLocaleDateString(isMM ? "my-MM" : "en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                {isMM ? "သက်တမ်းကုန်" : "Expiry"}: {booking.visaExpiryDate}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="bg-muted/50 rounded-lg p-4">
+            <h4 className={`font-semibold mb-3 ${isMM ? "font-myanmar" : ""}`}>
+              {isMM ? "လျှောက်ထားသူ အချက်အလက်" : "Applicant Details"}
+            </h4>
+            <div className="space-y-2 text-sm">
+              <p className="font-medium">{booking.fullName}</p>
+              <p className="flex items-center gap-2 text-muted-foreground">
+                <Mail className="h-4 w-4" /> {booking.email}
+              </p>
+              <p className="flex items-center gap-2 text-muted-foreground">
+                <Phone className="h-4 w-4" /> {booking.phone}
+              </p>
+              <p className="text-muted-foreground">
+                {isMM ? "ပတ်စ်ပို့" : "Passport"}: {booking.passportNumber}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-muted/50 rounded-lg p-4">
+            <h4 className={`font-semibold mb-3 ${isMM ? "font-myanmar" : ""}`}>
+              {isMM ? "တောင်းဆိုမှု အချက်အလက်" : "Request Info"}
+            </h4>
+            <div className="space-y-2 text-sm">
+              <p className="text-muted-foreground">
+                {isMM ? "လက်ရှိဗီဇာ" : "Current Visa"}: <span className="text-foreground">{booking.currentVisaType}</span>
+              </p>
+              <p className="text-muted-foreground">
+                {isMM ? "အမျိုးအစားခွဲ" : "Specific Type"}: <span className="text-foreground">{booking.visaType}</span>
+              </p>
+              <p className="text-muted-foreground">
+                {isMM ? "ဝန်ဆောင်ခ" : "Service Fee"}: <span className="font-semibold text-primary">{formatPrice(booking.servicePrice)}</span>
+              </p>
+              <p className="text-muted-foreground">
+                {isMM ? "တင်သွင်းရက်" : "Submitted"}: <span className="text-foreground">{new Date(booking.createdAt).toLocaleDateString()}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-muted/50 rounded-lg p-4">
+          <h4 className={`font-semibold mb-2 ${isMM ? "font-myanmar" : ""}`}>
+            {isMM ? "လိပ်စာ" : "Address"}
+          </h4>
+          <p className="text-sm text-muted-foreground">{booking.currentAddress}</p>
+        </div>
+
+        {booking.additionalNotes ? (
+          <div className="bg-muted/50 rounded-lg p-4">
+            <h4 className={`font-semibold mb-2 ${isMM ? "font-myanmar" : ""}`}>
+              {isMM ? "မှတ်ချက်များ" : "Additional Notes"}
+            </h4>
+            <p className="text-sm text-muted-foreground">{booking.additionalNotes}</p>
+          </div>
+        ) : null}
+      </>
+    )
+  }
+
+  const renderStatusMessage = () => {
+    if (!booking) {
+      return null
+    }
+
+    const status = booking.status
+
+    return (
+      <div
+        className={`rounded-lg p-4 ${
+          status === "confirmed"
+            ? "bg-green-50 border border-green-200"
+            : status === "pending"
+              ? "bg-yellow-50 border border-yellow-200"
+              : status === "processing"
+                ? "bg-blue-50 border border-blue-200"
+                : status === "cancelled"
+                  ? "bg-red-50 border border-red-200"
+                  : "bg-emerald-50 border border-emerald-200"
+        }`}
+      >
+        <div className="flex items-start gap-3">
+          <CheckCircle
+            className={`h-5 w-5 mt-0.5 ${
+              status === "confirmed"
+                ? "text-green-600"
+                : status === "pending"
+                  ? "text-yellow-600"
+                  : status === "processing"
+                    ? "text-blue-600"
+                    : status === "cancelled"
+                      ? "text-red-600"
+                      : "text-emerald-600"
+            }`}
+          />
+          <div className={isMM ? "font-myanmar" : ""}>
+            <p className="font-medium">
+              {status === "pending" && (isMM ? "သင့်တောင်းဆိုမှုကို စိစစ်နေပါသည်" : "Your request is being reviewed")}
+              {status === "confirmed" && (isMM ? "သင့်ဘွတ်ကင်ကို အတည်ပြုပြီးပါပြီ" : "Your booking is confirmed")}
+              {status === "processing" && (isMM ? "သင့်တောင်းဆိုမှုကို ဆောင်ရွက်နေပါသည်" : "Your request is being processed")}
+              {status === "cancelled" && (isMM ? "သင့်တောင်းဆိုမှုကို ပယ်ဖျက်ပြီးပါပြီ" : "Your request has been cancelled")}
+              {status === "completed" && (isMM ? "သင့်တောင်းဆိုမှု ပြီးဆုံးပါပြီ" : "Your request has been completed")}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {status === "pending" &&
+                (isMM ? "မကြာခင် အတည်ပြုချက်ရရှိပါမည်။" : "We'll contact you soon with the next steps.")}
+              {status === "confirmed" &&
+                (isMM ? "အသေးစိတ်အချက်အလက်များကို ဆက်သွယ်အတည်ပြုပါမည်။" : "We'll follow up to confirm the remaining details.")}
+              {status === "processing" &&
+                (isMM ? "လက်ရှိဆောင်ရွက်မှုအခြေအနေကို မကြာခင် update လုပ်ပေးပါမည်။" : "We'll share another update as soon as processing moves forward.")}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const resultTitle =
+    booking?.bookingType === "visa"
+      ? isMM
+        ? "တောင်းဆိုမှု အသေးစိတ်"
+        : "Request Details"
+      : isMM
+        ? "ဘွတ်ကင် အသေးစိတ်"
+        : "Booking Details"
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="bg-gradient-to-r from-primary to-accent py-16">
         <div className="container mx-auto px-4">
           <Link
@@ -93,52 +351,46 @@ export default function BookingLookupPage() {
           <h1
             className={`text-4xl md:text-5xl font-serif font-bold text-primary-foreground mb-4 ${isMM ? "font-myanmar" : ""}`}
           >
-            {isMM ? "ဘွတ်ကင် ရှာဖွေရန်" : "Track Your Booking"}
+            {isMM ? "ဘွတ်ကင် / တောင်းဆိုမှု ရှာဖွေရန်" : "Track Your Booking or Request"}
           </h1>
           <p className={`text-xl text-primary-foreground/80 max-w-2xl ${isMM ? "font-myanmar" : ""}`}>
             {isMM
-              ? "သင့် Booking ID ဖြင့် ဘွတ်ကင်အခြေအနေကို စစ်ဆေးပါ"
-              : "Enter your Booking ID to check your booking status and details"}
+              ? "Booking ID သို့မဟုတ် Request ID ဖြင့် အခြေအနေကို စစ်ဆေးပါ"
+              : "Enter your Booking ID or Request ID to check the latest status"}
           </p>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-12">
-        <div className="max-w-2xl mx-auto">
-          {/* Search Form */}
+        <div className="max-w-3xl mx-auto">
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className={`flex items-center gap-2 ${isMM ? "font-myanmar" : ""}`}>
                 <Search className="h-5 w-5 text-primary" />
-                {isMM ? "ဘွတ်ကင် ID ရိုက်ထည့်ပါ" : "Enter Booking ID"}
+                {isMM ? "ID ရိုက်ထည့်ပါ" : "Enter Your ID"}
               </CardTitle>
               <CardDescription className={isMM ? "font-myanmar" : ""}>
                 {isMM
-                  ? "သင့် Booking ID ကို ဘွတ်ကင်အတည်ပြုချက်တွင် တွေ့နိုင်ပါသည်"
-                  : "Your Booking ID was provided in your booking confirmation"}
+                  ? "Booking confirmation သို့မဟုတ် visa request email ထဲက ID ကို အသုံးပြုပါ"
+                  : "Use the ID from your tour booking confirmation or visa request email"}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSearch} className="flex gap-3">
                 <Input
-                  placeholder={isMM ? "ဥပမာ - BK1702567890ABC123" : "e.g., BK1702567890ABC123"}
+                  placeholder={isMM ? "ဥပမာ - BKABC123 သို့မဟုတ် VSABC123" : "e.g., BKABC123 or VSABC123"}
                   value={bookingId}
-                  onChange={(e) => setBookingId(e.target.value.toUpperCase())}
+                  onChange={(event) => setBookingId(event.target.value.toUpperCase())}
                   className="font-mono text-lg"
                 />
-                <Button
-                  type="submit"
-                  disabled={isSearching || !bookingId.trim()}
-                  className="bg-gradient-to-r from-primary to-accent"
-                >
+                <Button type="submit" disabled={isSearching || !bookingId.trim()} className="bg-gradient-to-r from-primary to-accent">
                   {isSearching ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
                 </Button>
               </form>
             </CardContent>
           </Card>
 
-          {/* Error State */}
-          {error && (
+          {error ? (
             <Card className="border-red-200 bg-red-50 mb-8">
               <CardContent className="flex items-center gap-4 py-6">
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -146,147 +398,31 @@ export default function BookingLookupPage() {
                 </div>
                 <div>
                   <h3 className={`font-semibold text-red-800 ${isMM ? "font-myanmar" : ""}`}>
-                    {isMM ? "ဘွတ်ကင်ကို ရှာမတွေ့ပါ" : "Booking Not Found"}
+                    {isMM ? "ID ကို ရှာမတွေ့ပါ" : "ID Not Found"}
                   </h3>
                   <p className={`text-sm text-red-600 ${isMM ? "font-myanmar" : ""}`}>{error}</p>
                 </div>
               </CardContent>
             </Card>
-          )}
+          ) : null}
 
-          {/* Booking Details */}
-          {booking && (
+          {booking ? (
             <Card className="border-primary/20">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className={`text-2xl font-serif ${isMM ? "font-myanmar" : ""}`}>
-                      {isMM ? "ဘွတ်ကင် အသေးစိတ်" : "Booking Details"}
-                    </CardTitle>
+                    <CardTitle className={`text-2xl font-serif ${isMM ? "font-myanmar" : ""}`}>{resultTitle}</CardTitle>
                     <p className="font-mono text-primary mt-1">{booking.id}</p>
                   </div>
                   {getStatusBadge(booking.status)}
                 </div>
               </CardHeader>
               <CardContent className="pt-6 space-y-6">
-                {/* Tour Info */}
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <h4 className={`font-semibold mb-3 flex items-center gap-2 ${isMM ? "font-myanmar" : ""}`}>
-                    <MapPin className="h-4 w-4 text-primary" />
-                    {isMM ? "ခရီးစဉ် အချက်အလက်" : "Tour Information"}
-                  </h4>
-                  <div className="space-y-2">
-                    <p className="font-medium text-lg">{booking.tourTitle}</p>
-                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {new Date(booking.travelDate).toLocaleDateString(isMM ? "my-MM" : "en-US", {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        {booking.numberOfGuests} {isMM ? "ဦး" : booking.numberOfGuests === 1 ? "Guest" : "Guests"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                {renderTourDetails()}
+                {renderVisaDetails()}
+                {renderStatusMessage()}
 
-                {/* Contact Info */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-muted/50 rounded-lg p-4">
-                    <h4 className={`font-semibold mb-3 ${isMM ? "font-myanmar" : ""}`}>
-                      {isMM ? "ဆက်သွယ်ရန် အချက်အလက်" : "Contact Details"}
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <p className="font-medium">{booking.fullName}</p>
-                      <p className="flex items-center gap-2 text-muted-foreground">
-                        <Mail className="h-4 w-4" /> {booking.email}
-                      </p>
-                      <p className="flex items-center gap-2 text-muted-foreground">
-                        <Phone className="h-4 w-4" /> {booking.phone}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="bg-muted/50 rounded-lg p-4">
-                    <h4 className={`font-semibold mb-3 ${isMM ? "font-myanmar" : ""}`}>
-                      {isMM ? "ဘွတ်ကင် အချက်အလက်" : "Booking Info"}
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <p className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">{isMM ? "ဘွတ်ကင်ရက်" : "Booked on"}:</span>
-                        <span>{new Date(booking.createdAt).toLocaleDateString()}</span>
-                      </p>
-                      <p className="flex items-center gap-2">
-                        <span className="text-muted-foreground">{isMM ? "စျေးနှုန်း" : "Price"}:</span>
-                        <span className="font-semibold text-primary">{booking.tourPrice}</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Special Requests */}
-                {booking.specialRequests && (
-                  <div className="bg-muted/50 rounded-lg p-4">
-                    <h4 className={`font-semibold mb-2 ${isMM ? "font-myanmar" : ""}`}>
-                      {isMM ? "အထူးတောင်းဆိုချက်များ" : "Special Requests"}
-                    </h4>
-                    <p className="text-sm text-muted-foreground">{booking.specialRequests}</p>
-                  </div>
-                )}
-
-                {/* Status Message */}
-                <div
-                  className={`rounded-lg p-4 ${
-                    booking.status === "confirmed"
-                      ? "bg-green-50 border border-green-200"
-                      : booking.status === "pending"
-                        ? "bg-yellow-50 border border-yellow-200"
-                        : booking.status === "cancelled"
-                          ? "bg-red-50 border border-red-200"
-                          : "bg-blue-50 border border-blue-200"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <CheckCircle
-                      className={`h-5 w-5 mt-0.5 ${
-                        booking.status === "confirmed"
-                          ? "text-green-600"
-                          : booking.status === "pending"
-                            ? "text-yellow-600"
-                            : booking.status === "cancelled"
-                              ? "text-red-600"
-                              : "text-blue-600"
-                      }`}
-                    />
-                    <div className={isMM ? "font-myanmar" : ""}>
-                      <p className="font-medium">
-                        {booking.status === "pending" &&
-                          (isMM ? "သင့်ဘွတ်ကင်ကို စိစစ်နေပါသည်" : "Your booking is being reviewed")}
-                        {booking.status === "confirmed" &&
-                          (isMM ? "သင့်ဘွတ်ကင်ကို အတည်ပြုပြီးပါပြီ" : "Your booking is confirmed")}
-                        {booking.status === "cancelled" &&
-                          (isMM ? "သင့်ဘွတ်ကင်ကို ပယ်ဖျက်ပြီးပါပြီ" : "Your booking has been cancelled")}
-                        {booking.status === "completed" &&
-                          (isMM ? "သင့်ခရီးစဉ် ပြီးဆုံးပါပြီ" : "Your tour has been completed")}
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {booking.status === "pending" &&
-                          (isMM ? "၂၄ နာရီအတွင်း အတည်ပြုချက် ရရှိပါမည်" : "You'll receive confirmation within 24 hours")}
-                        {booking.status === "confirmed" &&
-                          (isMM ? "သင့်ခရီးစဉ်အတွက် ပြင်ဆင်ပါ!" : "Get ready for your adventure!")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <Button asChild className="flex-1 bg-green-600 hover:bg-green-700">
                     <a href={generateWhatsAppLink()} target="_blank" rel="noopener noreferrer">
                       <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
@@ -306,12 +442,11 @@ export default function BookingLookupPage() {
                 </div>
               </CardContent>
             </Card>
-          )}
+          ) : null}
 
-          {/* Help Section */}
           <div className="mt-12 text-center">
             <p className={`text-muted-foreground mb-4 ${isMM ? "font-myanmar" : ""}`}>
-              {isMM ? "Booking ID မရှိပါက သို့မဟုတ် အကူအညီလိုပါက" : "Don't have your Booking ID or need help?"}
+              {isMM ? "ID မရှိပါက သို့မဟုတ် အကူအညီလိုပါက" : "Don't have your ID or need help?"}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button variant="outline" asChild>

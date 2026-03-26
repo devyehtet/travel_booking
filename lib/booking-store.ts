@@ -1,9 +1,19 @@
-// Booking types for client and server
+export const TOUR_BOOKING_STATUSES = ["pending", "confirmed", "cancelled", "completed"] as const
+export const VISA_BOOKING_STATUSES = ["pending", "processing", "completed", "cancelled"] as const
+
+export type TourBookingStatus = (typeof TOUR_BOOKING_STATUSES)[number]
+export type VisaBookingStatus = (typeof VISA_BOOKING_STATUSES)[number]
+
 export interface BookingData {
+  bookingType: "tour"
   id: string
   tourId: number
   tourTitle: string
-  tourPrice: string
+  tourLocation: string
+  tourDuration: string
+  tourPrice: number
+  totalPrice: number
+  currency: "THB"
   fullName: string
   email: string
   phone: string
@@ -13,131 +23,60 @@ export interface BookingData {
   specialRequests?: string
   preferredLanguage: string
   createdAt: string
-  status: "pending" | "confirmed" | "cancelled" | "completed"
+  status: TourBookingStatus
 }
 
 export interface VisaBookingData {
+  bookingType: "visa"
   id: string
   serviceType: string
   serviceTitle: string
-  servicePrice: string
+  servicePrice: number
+  currency: "THB"
   fullName: string
   email: string
   phone: string
   nationality: string
   passportNumber: string
   currentVisaType: string
+  visaType: string
   visaExpiryDate: string
   currentAddress: string
   preferredDate: string
   additionalNotes?: string
   preferredLanguage: string
   createdAt: string
-  status: "pending" | "processing" | "completed" | "cancelled"
+  status: VisaBookingStatus
 }
 
-// Client-side storage utilities
-const STORAGE_KEY = "yourborders_bookings"
-const VISA_STORAGE_KEY = "yourborders_visa_bookings"
+export type StoredBooking = BookingData | VisaBookingData
 
-export function getBookingsFromStorage(): BookingData[] {
-  if (typeof window === "undefined") return []
-  try {
-    const data = localStorage.getItem(STORAGE_KEY)
-    return data ? JSON.parse(data) : []
-  } catch {
-    return []
-  }
-}
-
-export function saveBookingsToStorage(bookings: BookingData[]) {
-  if (typeof window === "undefined") return
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings))
-    window.dispatchEvent(new CustomEvent("bookings-updated", { detail: bookings }))
-  } catch (error) {
-    console.error("Failed to save bookings:", error)
-  }
-}
-
-export function addBookingToStorage(booking: BookingData) {
-  const bookings = getBookingsFromStorage()
-  bookings.unshift(booking)
-  saveBookingsToStorage(bookings)
-  return booking
-}
-
-export function getAllBookings(): BookingData[] {
-  return getBookingsFromStorage()
-}
-
-export function getBookingByIdFromStorage(id: string): BookingData | undefined {
-  const bookings = getBookingsFromStorage()
-  return bookings.find((b) => b.id.toUpperCase() === id.toUpperCase())
-}
-
-export function updateBookingStatusInStorage(id: string, status: BookingData["status"]) {
-  const bookings = getBookingsFromStorage()
-  const index = bookings.findIndex((b) => b.id === id)
-  if (index !== -1) {
-    bookings[index].status = status
-    saveBookingsToStorage(bookings)
-    return bookings[index]
-  }
-  return null
-}
-
-export function generateBookingId(): string {
+function buildBookingId(prefix: "BK" | "VS") {
   const timestamp = Date.now().toString(36).toUpperCase()
   const random = Math.random().toString(36).substring(2, 8).toUpperCase()
-  return `YB${timestamp}${random}`
+  return `${prefix}${timestamp}${random}`
 }
 
-export function getVisaBookingsFromStorage(): VisaBookingData[] {
-  if (typeof window === "undefined") return []
-  try {
-    const data = localStorage.getItem(VISA_STORAGE_KEY)
-    return data ? JSON.parse(data) : []
-  } catch {
-    return []
+export function generateBookingId() {
+  return buildBookingId("BK")
+}
+
+export function generateVisaBookingId() {
+  return buildBookingId("VS")
+}
+
+export function isTourBooking(booking: StoredBooking): booking is BookingData {
+  return booking.bookingType === "tour"
+}
+
+export function isVisaBooking(booking: StoredBooking): booking is VisaBookingData {
+  return booking.bookingType === "visa"
+}
+
+export function formatStoredPrice(amount: number, currency: "THB" = "THB") {
+  if (currency === "THB") {
+    return `฿${amount.toLocaleString()}`
   }
-}
 
-export function saveVisaBookingsToStorage(bookings: VisaBookingData[]) {
-  if (typeof window === "undefined") return
-  try {
-    localStorage.setItem(VISA_STORAGE_KEY, JSON.stringify(bookings))
-    window.dispatchEvent(new CustomEvent("visa-bookings-updated", { detail: bookings }))
-  } catch (error) {
-    console.error("Failed to save visa bookings:", error)
-  }
-}
-
-export function addVisaBookingToStorage(booking: VisaBookingData) {
-  const bookings = getVisaBookingsFromStorage()
-  bookings.unshift(booking)
-  saveVisaBookingsToStorage(bookings)
-  return booking
-}
-
-export function getVisaBookingByIdFromStorage(id: string): VisaBookingData | undefined {
-  const bookings = getVisaBookingsFromStorage()
-  return bookings.find((b) => b.id.toUpperCase() === id.toUpperCase())
-}
-
-export function updateVisaBookingStatusInStorage(id: string, status: VisaBookingData["status"]) {
-  const bookings = getVisaBookingsFromStorage()
-  const index = bookings.findIndex((b) => b.id === id)
-  if (index !== -1) {
-    bookings[index].status = status
-    saveVisaBookingsToStorage(bookings)
-    return bookings[index]
-  }
-  return null
-}
-
-export function generateVisaBookingId(): string {
-  const timestamp = Date.now().toString(36).toUpperCase()
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase()
-  return `VS${timestamp}${random}`
+  return amount.toLocaleString()
 }

@@ -1,14 +1,12 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { DM_Sans, Fraunces, Padauk } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import Script from "next/script"
 import { LocaleProvider } from "@/lib/locale-context"
 import { detectLocaleFromIP } from "@/app/actions/detect-locale"
 import "./globals.css"
 
-const _dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"] })
-const _fraunces = Fraunces({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] })
-const _padauk = Padauk({ subsets: ["myanmar"], weight: ["400", "700"] })
+const GTM_ID = "GTM-5ZHHFT5W"
 
 export const metadata: Metadata = {
   title: "Your Borders — Thailand Tours & Visa Services for Myanmar Travelers",
@@ -44,6 +42,21 @@ export default async function RootLayout({
   return (
     <html lang={detectedLocale === "mm" ? "my" : "en"}>
       <body className={`font-sans antialiased`}>
+        <Script id="google-tag-manager" strategy="afterInteractive">
+          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${GTM_ID}');`}
+        </Script>
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         <LocaleProvider detectedLocale={detectedLocale}>{children}</LocaleProvider>
         <Analytics />
       </body>

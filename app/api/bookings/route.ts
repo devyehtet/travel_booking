@@ -1,33 +1,72 @@
 import { NextResponse } from "next/server"
-import type { BookingData } from "@/lib/booking-store"
+import { z } from "zod"
 
-export async function GET() {
-  // Note: This API cannot access localStorage as it runs on the server
-  // Bookings are stored in browser localStorage and managed client-side
+import type { BookingData } from "@/lib/booking-store"
+import { hasAdminSession } from "@/lib/server/admin-auth"
+import { createTourBookingRecord, findStoredBookingById, listTourBookings } from "@/lib/server/booking-repository"
+
+const bookingRecordSchema: z.ZodType<BookingData> = z.object({
+  bookingType: z.literal("tour"),
+  id: z.string().min(1),
+  tourId: z.number().int().positive(),
+  tourTitle: z.string().min(1),
+  tourLocation: z.string().min(1),
+  tourDuration: z.string().min(1),
+  tourPrice: z.number().nonnegative(),
+  totalPrice: z.number().nonnegative(),
+  currency: z.literal("THB"),
+  fullName: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string().min(5),
+  nationality: z.string().min(1),
+  numberOfGuests: z.number().int().positive(),
+  travelDate: z.string().min(1),
+  specialRequests: z.string().optional(),
+  preferredLanguage: z.string().min(1),
+  createdAt: z.string().min(1),
+  status: z.enum(["pending", "confirmed", "cancelled", "completed"]),
+})
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const bookingId = searchParams.get("id")
+
+  if (bookingId) {
+    const booking = await findStoredBookingById(bookingId)
+
+    if (!booking || booking.bookingType !== "tour") {
+      return NextResponse.json({ success: false, message: "Booking not found" }, { status: 404 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      booking,
+    })
+  }
+
+  if (!(await hasAdminSession())) {
+    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+  }
+
+  const bookings = await listTourBookings()
   return NextResponse.json({
     success: true,
-    message: "Bookings are stored in browser localStorage. Access them via the admin dashboard at /admin/bookings",
-    note: "For production, connect a database like Supabase to persist bookings server-side.",
+    bookings,
   })
 }
 
 export async function POST(request: Request) {
   try {
-    const booking: BookingData = await request.json()
+    const payload = await request.json()
+    const booking = bookingRecordSchema.parse(payload)
 
-    // Here you could:
-    // 1. Send to a webhook (Zapier, Make, etc.)
-    // 2. Send email notification
-    // 3. Log to external service
-
-    console.log("[Booking Received]", booking.id, booking.fullName, booking.tourTitle)
+    await createTourBookingRecord(booking)
 
     return NextResponse.json({
       success: true,
-      message: "Booking received",
       bookingId: booking.id,
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ success: false, message: "Invalid booking data" }, { status: 400 })
   }
 }

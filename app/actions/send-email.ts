@@ -84,7 +84,7 @@ export async function sendTourBookingConfirmation(data: TourBookingEmailData): P
   // Always send detailed admin notification
   const adminSubject = `🎫 NEW TOUR BOOKING: ${data.bookingId} | ${data.customerName} | ${data.tourTitle}`
   const adminHtml = generateAdminNotificationEmailHTML("tour", data)
-  const adminText = `New tour booking from ${data.customerName} (${data.email}) for ${data.tourTitle}. Booking ID: ${data.bookingId}. Total: ${data.currency}${data.totalPrice}. Travel Date: ${data.travelDate}. Travelers: ${data.travelers}. Phone: ${data.phone}.`
+  const adminText = `New tour booking from ${data.customerName} (${data.email}) for ${data.tourTitle}. Booking ID: ${data.bookingId}. Total: ${data.currency}${data.totalPrice}. Travel Date: ${data.travelDate}. Travelers: ${data.numberOfGuests}. Phone: ${data.phone}.`
   await sendEmailViaResend(ADMIN_EMAIL, adminSubject, adminHtml, adminText)
 
   return customerResult

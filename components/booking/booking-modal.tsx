@@ -10,8 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar, Users, ChevronLeft, ChevronRight, Check, Copy, Loader2 } from "lucide-react"
 import { useLocale } from "@/lib/locale-context"
 import type { Tour } from "@/lib/tour-data"
-import { addBookingToStorage } from "@/lib/booking-store"
-import { sendTourBookingConfirmation } from "@/app/actions/send-email"
+import { createTourBooking } from "@/app/actions/booking"
 
 interface BookingModalProps {
   tour: Tour | null
@@ -34,6 +33,7 @@ export function BookingModal({ tour, isOpen, onClose }: BookingModalProps) {
   const [bookingId, setBookingId] = useState("")
   const [copied, setCopied] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
+  const [submissionError, setSubmissionError] = useState("")
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -58,57 +58,39 @@ export function BookingModal({ tour, isOpen, onClose }: BookingModalProps) {
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
-
-    const booking = {
-      id: `BK${Date.now()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
-      status: "pending" as const,
-      date: new Date().toISOString(),
-      tour: {
-        title: tour.title,
-        location: tour.location,
-        duration: tour.duration,
-        price: tour.price,
-        image: tour.image,
-      },
-      customer: {
-        name: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        nationality: formData.nationality,
-      },
-      travelDate: formData.travelDate,
-      numberOfGuests: Number(formData.numberOfGuests),
-      specialRequests: formData.specialRequests,
-      totalPrice: totalPrice,
-    }
-
-    // Save to localStorage
-    addBookingToStorage(booking)
-
-    // Send confirmation emails
     try {
-      const emailResult = await sendTourBookingConfirmation({
-        bookingId: booking.id,
-        customerName: formData.fullName,
-        customerEmail: formData.email,
-        customerPhone: formData.phone,
-        tourName: tour.title,
+      setSubmissionError("")
+
+      const result = await createTourBooking({
+        tourId: tour.id,
+        tourTitle: tour.title,
         tourLocation: tour.location,
         tourDuration: tour.duration,
-        travelDate: formData.travelDate,
+        tourPrice: numericPrice,
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        nationality: formData.nationality || "Myanmar",
         numberOfGuests: Number(formData.numberOfGuests),
-        totalPrice: `฿${totalPrice.toLocaleString()}`,
+        travelDate: formData.travelDate,
         specialRequests: formData.specialRequests,
-        nationality: formData.nationality,
+        preferredLanguage: isMM ? "myanmar" : "english",
       })
-      setEmailSent(emailResult.success)
-    } catch (error) {
-      console.error("Failed to send email:", error)
-    }
 
-    setBookingId(booking.id)
-    setBookingComplete(true)
-    setIsSubmitting(false)
+      if (!result.success) {
+        setSubmissionError(result.message)
+        return
+      }
+
+      setEmailSent(result.emailSent)
+      setBookingId(result.booking.id)
+      setBookingComplete(true)
+    } catch (error) {
+      console.error("Failed to submit booking:", error)
+      setSubmissionError(isMM ? "ဘွတ်ကင် တင်သွင်းမှု မအောင်မြင်ပါ။" : "Booking submission failed.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const copyBookingId = () => {
@@ -122,6 +104,7 @@ export function BookingModal({ tour, isOpen, onClose }: BookingModalProps) {
     setBookingComplete(false)
     setBookingId("")
     setEmailSent(false)
+    setSubmissionError("")
     setFormData({
       fullName: "",
       email: "",
@@ -152,6 +135,8 @@ export function BookingModal({ tour, isOpen, onClose }: BookingModalProps) {
           </DialogTitle>
           <p className="text-sm text-muted-foreground">{tour.title}</p>
         </DialogHeader>
+
+        {submissionError ? <p className="text-sm text-destructive">{submissionError}</p> : null}
 
         {bookingComplete ? (
           <div className="space-y-6 py-4">

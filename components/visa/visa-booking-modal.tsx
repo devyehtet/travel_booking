@@ -23,8 +23,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useLocale } from "@/lib/locale-context"
-import { addVisaBookingToStorage, generateVisaBookingId, type VisaBookingData } from "@/lib/booking-store"
-import { sendVisaBookingConfirmation } from "@/app/actions/send-email"
+import { createVisaBooking } from "@/app/actions/booking"
 
 export interface VisaService {
   id: string
@@ -139,6 +138,7 @@ export function VisaBookingModal({ service, isOpen, onClose }: VisaBookingModalP
   } | null>(null)
   const [copied, setCopied] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
+  const [submissionError, setSubmissionError] = useState("")
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -160,6 +160,7 @@ export function VisaBookingModal({ service, isOpen, onClose }: VisaBookingModalP
       setStep(1)
       setBookingResult(null)
       setEmailSent(false)
+      setSubmissionError("")
       setFormData({
         fullName: "",
         email: "",
@@ -185,55 +186,44 @@ export function VisaBookingModal({ service, isOpen, onClose }: VisaBookingModalP
 
     setIsSubmitting(true)
 
-    const bookingId = generateVisaBookingId()
+    try {
+      setSubmissionError("")
 
-    const bookingData: VisaBookingData = {
-      id: bookingId,
-      serviceType: service.id,
-      serviceTitle: isMM ? service.titleMM : service.title,
-      servicePrice: service.price,
-      fullName: formData.fullName,
-      email: formData.email,
-      phone: formData.phone,
-      nationality: formData.nationality,
-      passportNumber: formData.passportNumber,
-      currentVisaType: formData.currentVisaType,
-      visaExpiryDate: formData.visaExpiryDate,
-      currentAddress: formData.currentAddress,
-      preferredDate: formData.preferredDate,
-      additionalNotes: formData.additionalNotes,
-      preferredLanguage: formData.preferredLanguage,
-      visaType: formData.visaType,
-      createdAt: new Date().toISOString(),
-      status: "pending",
+      const result = await createVisaBooking({
+        serviceType: service.id,
+        serviceTitle: isMM ? service.titleMM : service.title,
+        servicePrice: service.price,
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        nationality: formData.nationality,
+        passportNumber: formData.passportNumber,
+        currentVisaType: formData.currentVisaType,
+        visaType: formData.visaType,
+        visaExpiryDate: formData.visaExpiryDate,
+        currentAddress: formData.currentAddress,
+        preferredDate: formData.preferredDate,
+        additionalNotes: formData.additionalNotes,
+        preferredLanguage: formData.preferredLanguage,
+      })
+
+      if (!result.success) {
+        setSubmissionError(result.message)
+        return
+      }
+
+      setBookingResult({
+        success: true,
+        bookingId: result.booking.id,
+      })
+      setEmailSent(result.emailSent)
+      setStep(3)
+    } catch (error) {
+      console.error("Failed to submit visa request:", error)
+      setSubmissionError(isMM ? "တောင်းဆိုမှု တင်သွင်းမှု မအောင်မြင်ပါ။" : "Request submission failed.")
+    } finally {
+      setIsSubmitting(false)
     }
-
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    addVisaBookingToStorage(bookingData)
-
-    setBookingResult({
-      success: true,
-      bookingId: bookingId,
-    })
-
-    const emailResult = await sendVisaBookingConfirmation({
-      bookingId: bookingId,
-      customerName: formData.fullName,
-      email: formData.email,
-      serviceTitle: isMM ? service.titleMM : service.title,
-      preferredDate: formData.preferredDate,
-      passportNumber: formData.passportNumber,
-      currentVisaType: formData.currentVisaType,
-      servicePrice: service.price,
-      currency: locale === "mm" ? "MMK " : "฿",
-      visaType: formData.visaType,
-    })
-    setEmailSent(emailResult.success)
-
-    setIsSubmitting(false)
-    setStep(3)
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -318,6 +308,7 @@ export function VisaBookingModal({ service, isOpen, onClose }: VisaBookingModalP
 
         {/* Content */}
         <div className="overflow-y-auto max-h-[60vh] p-6">
+          {submissionError ? <p className="mb-4 text-sm text-destructive">{submissionError}</p> : null}
           <form onSubmit={handleSubmit}>
             {/* Step 1: Personal Info */}
             {step === 1 && (
