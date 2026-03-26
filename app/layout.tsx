@@ -6,7 +6,8 @@ import { detectLocaleFromIP } from "@/app/actions/detect-locale"
 import "./globals.css"
 
 const GTM_ID = "GTM-5ZHHFT5W"
-const GTAG_ID = "G-WKT390LNNE"
+const GOOGLE_ANALYTICS_ID = "G-WKT390LNNE"
+const GOOGLE_ADS_TAG_ID = "GT-TNLZKVFH"
 const GTM_SCRIPT = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
@@ -15,7 +16,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 const GTAG_SCRIPT = `window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', '${GTAG_ID}');`
+gtag('config', '${GOOGLE_ANALYTICS_ID}');
+gtag('config', '${GOOGLE_ADS_TAG_ID}');`
 const GTM_NOSCRIPT = `<iframe src="https://www.googletagmanager.com/ns.html?id=${GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`
 
 export const metadata: Metadata = {
@@ -53,7 +55,7 @@ export default async function RootLayout({
     <html lang={detectedLocale === "mm" ? "my" : "en"}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: GTM_SCRIPT }} />
-        <script async src={`https://www.googletagmanager.com/gtag/js?id=${GTAG_ID}`} />
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_ID}`} />
         <script dangerouslySetInnerHTML={{ __html: GTAG_SCRIPT }} />
       </head>
       <body className={`font-sans antialiased`}>
