@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Users, ChevronLeft, ChevronRight, Check, Copy, Loader2 } from "lucide-react"
 import { useLocale } from "@/lib/locale-context"
+import { trackPurchase } from "@/lib/gtag"
 import type { Tour } from "@/lib/tour-data"
 import { createTourBooking } from "@/app/actions/booking"
 
@@ -34,6 +35,7 @@ export function BookingModal({ tour, isOpen, onClose }: BookingModalProps) {
   const [copied, setCopied] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
   const [submissionError, setSubmissionError] = useState("")
+  const purchaseTrackedRef = useRef(false)
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -51,6 +53,36 @@ export function BookingModal({ tour, isOpen, onClose }: BookingModalProps) {
   if (!tour) {
     return null
   }
+
+  useEffect(() => {
+    if (!isOpen) {
+      purchaseTrackedRef.current = false
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!bookingComplete || !bookingId || purchaseTrackedRef.current) {
+      return
+    }
+
+    trackPurchase({
+      transaction_id: bookingId,
+      value: totalPrice,
+      currency: "THB",
+      items: [
+        {
+          item_id: String(tour.id),
+          item_name: tour.title,
+          item_category: "tour",
+          item_variant: tour.location,
+          price: numericPrice,
+          quantity: Number(formData.numberOfGuests || 1),
+        },
+      ],
+    })
+
+    purchaseTrackedRef.current = true
+  }, [bookingComplete, bookingId, formData.numberOfGuests, numericPrice, totalPrice, tour])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
