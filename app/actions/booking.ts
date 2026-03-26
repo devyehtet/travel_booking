@@ -15,6 +15,7 @@ import {
   createTourBookingRecord,
   createVisaBookingRecord,
   findStoredBookingById,
+  hasDurableBookingStorage,
   listTourBookings,
   listVisaBookings,
   updateTourBookingRecord,
@@ -95,9 +96,22 @@ type ActionResult<T> =
   | ({ success: true; message: string } & T)
   | { success: false; message: string }
 
+async function persistBookingRecord(
+  persist: () => Promise<BookingData | VisaBookingData>,
+  logLabel: "tour booking" | "visa request",
+) {
+  try {
+    await persist()
+    return true
+  } catch (error) {
+    console.error(`Failed to persist ${logLabel}:`, error)
+    return false
+  }
+}
+
 export async function createTourBooking(
   input: z.input<typeof tourBookingInputSchema>,
-): Promise<ActionResult<{ booking: BookingData; emailSent: boolean }>> {
+): Promise<ActionResult<{ booking: BookingData; emailSent: boolean; storedInDashboard: boolean }>> {
   const parsed = tourBookingInputSchema.safeParse(input)
 
   if (!parsed.success) {
@@ -118,7 +132,7 @@ export async function createTourBooking(
     status: "pending",
   }
 
-  await createTourBookingRecord(booking)
+  const storedInDashboard = await persistBookingRecord(() => createTourBookingRecord(booking), "tour booking")
 
   const emailResult = await sendTourBookingConfirmation({
     bookingId: booking.id,
@@ -134,19 +148,32 @@ export async function createTourBooking(
     specialRequests: booking.specialRequests,
   })
 
+  const emailSent = emailResult.customerEmailSent ?? emailResult.success
+  const adminNotificationSent = emailResult.adminNotificationSent ?? false
+
+  if (!storedInDashboard && !adminNotificationSent) {
+    return {
+      success: false,
+      message: "We could not submit your booking right now. Please try again in a moment.",
+    }
+  }
+
   return {
     success: true,
-    message: emailResult.success
-      ? "Booking submitted successfully."
-      : "Booking submitted, but the confirmation email could not be sent.",
+    message: storedInDashboard
+      ? emailSent
+        ? "Booking submitted successfully."
+        : "Booking submitted. Our team has the details, but the confirmation email could not be sent."
+      : "Booking submitted. Our admin team received it by email, but dashboard storage is not configured yet.",
     booking,
-    emailSent: emailResult.success,
+    emailSent,
+    storedInDashboard,
   }
 }
 
 export async function createVisaBooking(
   input: z.input<typeof visaBookingInputSchema>,
-): Promise<ActionResult<{ booking: VisaBookingData; emailSent: boolean }>> {
+): Promise<ActionResult<{ booking: VisaBookingData; emailSent: boolean; storedInDashboard: boolean }>> {
   const parsed = visaBookingInputSchema.safeParse(input)
 
   if (!parsed.success) {
@@ -166,7 +193,7 @@ export async function createVisaBooking(
     status: "pending",
   }
 
-  await createVisaBookingRecord(booking)
+  const storedInDashboard = await persistBookingRecord(() => createVisaBookingRecord(booking), "visa request")
 
   const emailResult = await sendVisaBookingConfirmation({
     bookingId: booking.id,
@@ -184,13 +211,26 @@ export async function createVisaBooking(
     additionalNotes: booking.additionalNotes,
   })
 
+  const emailSent = emailResult.customerEmailSent ?? emailResult.success
+  const adminNotificationSent = emailResult.adminNotificationSent ?? false
+
+  if (!storedInDashboard && !adminNotificationSent) {
+    return {
+      success: false,
+      message: "We could not submit your visa request right now. Please try again in a moment.",
+    }
+  }
+
   return {
     success: true,
-    message: emailResult.success
-      ? "Visa request submitted successfully."
-      : "Visa request submitted, but the confirmation email could not be sent.",
+    message: storedInDashboard
+      ? emailSent
+        ? "Visa request submitted successfully."
+        : "Visa request submitted. Our team has the details, but the confirmation email could not be sent."
+      : "Visa request submitted. Our admin team received it by email, but dashboard storage is not configured yet.",
     booking,
-    emailSent: emailResult.success,
+    emailSent,
+    storedInDashboard,
   }
 }
 
@@ -249,7 +289,7 @@ export async function logoutAdmin() {
 
 export async function getAdminDashboardData(): Promise<
   | { authenticated: false; message: string }
-  | { authenticated: true; tours: BookingData[]; visas: VisaBookingData[] }
+  | { authenticated: true; tours: BookingData[]; visas: VisaBookingData[]; hasDurableStorage: boolean }
 > {
   if (!(await hasAdminSession())) {
     return {
@@ -264,6 +304,7 @@ export async function getAdminDashboardData(): Promise<
     authenticated: true,
     tours,
     visas,
+    hasDurableStorage: hasDurableBookingStorage(),
   }
 }
 
@@ -279,6 +320,13 @@ export async function updateStoredBookingStatus(
     return {
       success: false,
       message: "Admin authentication required.",
+    }
+  }
+
+  if (!hasDurableBookingStorage()) {
+    return {
+      success: false,
+      message: "Dashboard status updates need durable booking storage. Right now new requests are only delivered to the admin email inbox.",
     }
   }
 

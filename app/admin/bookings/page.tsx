@@ -52,6 +52,7 @@ type DashboardState =
       authenticated: true
       tours: BookingData[]
       visas: VisaBookingData[]
+      hasDurableStorage: boolean
     }
 
 type PendingStatusUpdate =
@@ -134,6 +135,7 @@ export default function AdminBookingsPage() {
       authenticated: true,
       tours: result.tours,
       visas: result.visas,
+      hasDurableStorage: result.hasDurableStorage,
     })
     setIsLoading(false)
   }
@@ -144,6 +146,7 @@ export default function AdminBookingsPage() {
 
   const tours = dashboard.authenticated ? dashboard.tours : []
   const visas = dashboard.authenticated ? dashboard.visas : []
+  const hasDurableStorage = dashboard.authenticated ? dashboard.hasDurableStorage : false
 
   const normalizedSearch = searchTerm.toLowerCase()
   const filteredTours = tours.filter((booking) => {
@@ -383,6 +386,21 @@ export default function AdminBookingsPage() {
             Logout
           </Button>
         </div>
+
+        {!hasDurableStorage ? (
+          <Card className="mb-6 border-amber-200 bg-amber-50">
+            <CardContent className="flex gap-3 p-4 text-sm text-amber-900">
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+              <div className="space-y-1">
+                <p className="font-medium">Production dashboard storage is not configured yet.</p>
+                <p>
+                  New tour bookings and visa requests are still delivered to the admin email inbox, but they will not
+                  remain in this dashboard until a durable database or other persistent storage is connected.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "tours" | "visa")}>
           <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">

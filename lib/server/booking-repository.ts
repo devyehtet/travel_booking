@@ -9,6 +9,10 @@ const dataDirectory = path.join(process.cwd(), "data")
 const tourBookingsFile = path.join(dataDirectory, "bookings.json")
 const visaBookingsFile = path.join(dataDirectory, "visa-bookings.json")
 
+export function hasDurableBookingStorage() {
+  return !process.env.VERCEL
+}
+
 async function ensureArrayFile(filePath: string) {
   await fs.mkdir(path.dirname(filePath), { recursive: true })
 

@@ -21,6 +21,8 @@ interface EmailResult {
   success: boolean
   message: string
   emailId?: string
+  customerEmailSent?: boolean
+  adminNotificationSent?: boolean
 }
 
 async function sendEmailViaResend(to: string, subject: string, html: string, text: string): Promise<EmailResult> {
@@ -73,6 +75,49 @@ async function sendEmailViaResend(to: string, subject: string, html: string, tex
   }
 }
 
+function combineCustomerAndAdminEmailResults(
+  customerResult: EmailResult,
+  adminResult: EmailResult,
+  entityLabel: "booking" | "visa request",
+): EmailResult {
+  if (customerResult.success && adminResult.success) {
+    return {
+      success: true,
+      message: "Customer confirmation and admin notification sent successfully.",
+      emailId: customerResult.emailId,
+      customerEmailSent: true,
+      adminNotificationSent: true,
+    }
+  }
+
+  if (customerResult.success) {
+    return {
+      success: true,
+      message: `The ${entityLabel} was confirmed to the customer, but the admin notification email failed.`,
+      emailId: customerResult.emailId,
+      customerEmailSent: true,
+      adminNotificationSent: false,
+    }
+  }
+
+  if (adminResult.success) {
+    return {
+      success: true,
+      message: `The ${entityLabel} reached the admin inbox, but the customer confirmation email failed.`,
+      emailId: adminResult.emailId,
+      customerEmailSent: false,
+      adminNotificationSent: true,
+    }
+  }
+
+  return {
+    success: false,
+    message: customerResult.message || adminResult.message || "Failed to send email notifications",
+    customerEmailSent: false,
+    adminNotificationSent: false,
+  }
+}
+
 export async function sendTourBookingConfirmation(data: TourBookingEmailData): Promise<EmailResult> {
   const subject = `Booking Confirmed! Your Borders - ${data.bookingId}`
   const html = generateTourBookingEmailHTML(data)
@@ -85,9 +130,9 @@ export async function sendTourBookingConfirmation(data: TourBookingEmailData): P
   const adminSubject = `🎫 NEW TOUR BOOKING: ${data.bookingId} | ${data.customerName} | ${data.tourTitle}`
   const adminHtml = generateAdminNotificationEmailHTML("tour", data)
   const adminText = `New tour booking from ${data.customerName} (${data.email}) for ${data.tourTitle}. Booking ID: ${data.bookingId}. Total: ${data.currency}${data.totalPrice}. Travel Date: ${data.travelDate}. Travelers: ${data.numberOfGuests}. Phone: ${data.phone}.`
-  await sendEmailViaResend(ADMIN_EMAIL, adminSubject, adminHtml, adminText)
+  const adminResult = await sendEmailViaResend(ADMIN_EMAIL, adminSubject, adminHtml, adminText)
 
-  return customerResult
+  return combineCustomerAndAdminEmailResults(customerResult, adminResult, "booking")
 }
 
 export async function sendVisaBookingConfirmation(data: VisaBookingEmailData): Promise<EmailResult> {
@@ -102,9 +147,9 @@ export async function sendVisaBookingConfirmation(data: VisaBookingEmailData): P
   const adminSubject = `📄 NEW VISA REQUEST: ${data.bookingId} | ${data.customerName} | ${data.serviceTitle}`
   const adminHtml = generateAdminNotificationEmailHTML("visa", data)
   const adminText = `New visa request from ${data.customerName} (${data.email}) for ${data.serviceTitle}. Request ID: ${data.bookingId}. Fee: ${data.currency}${data.servicePrice}. Preferred Date: ${data.preferredDate}. Passport: ${data.passportNumber}. Phone: ${data.phone}. Visa Expiry: ${data.visaExpiryDate}.`
-  await sendEmailViaResend(ADMIN_EMAIL, adminSubject, adminHtml, adminText)
+  const adminResult = await sendEmailViaResend(ADMIN_EMAIL, adminSubject, adminHtml, adminText)
 
-  return customerResult
+  return combineCustomerAndAdminEmailResults(customerResult, adminResult, "visa request")
 }
 
 export async function sendBookingStatusUpdate(data: StatusUpdateEmailData): Promise<EmailResult> {
