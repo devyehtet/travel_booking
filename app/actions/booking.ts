@@ -365,6 +365,7 @@ export async function updateStoredBookingStatus(
     }
 
     let emailSent = false
+    let emailFailureMessage: string | undefined
 
     if (sendEmail) {
       const emailResult = await sendBookingStatusUpdate({
@@ -380,11 +381,15 @@ export async function updateStoredBookingStatus(
       })
 
       emailSent = emailResult.success
+      emailFailureMessage = emailResult.success ? undefined : emailResult.message
     }
 
     return {
       success: true,
-      message: sendEmail && !emailSent ? "Status updated, but the email could not be sent." : "Status updated successfully.",
+      message:
+        sendEmail && !emailSent
+          ? `Status updated, but the email could not be sent. ${emailFailureMessage ?? ""}`.trim()
+          : "Status updated successfully.",
       booking: updated,
       emailSent,
     }
@@ -413,6 +418,7 @@ export async function updateStoredBookingStatus(
   }
 
   let emailSent = false
+  let emailFailureMessage: string | undefined
 
   if (sendEmail) {
     const emailResult = await sendBookingStatusUpdate({
@@ -428,11 +434,15 @@ export async function updateStoredBookingStatus(
     })
 
     emailSent = emailResult.success
+    emailFailureMessage = emailResult.success ? undefined : emailResult.message
   }
 
   return {
     success: true,
-    message: sendEmail && !emailSent ? "Status updated, but the email could not be sent." : "Status updated successfully.",
+    message:
+      sendEmail && !emailSent
+        ? `Status updated, but the email could not be sent. ${emailFailureMessage ?? ""}`.trim()
+        : "Status updated successfully.",
     booking: updated,
     emailSent,
   }

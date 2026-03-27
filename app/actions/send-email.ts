@@ -13,9 +13,9 @@ import {
   type StatusUpdateEmailData,
 } from "@/lib/email-templates"
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY
-const FROM_EMAIL = process.env.FROM_EMAIL || "Your Borders <noreply@mail.yehtet.com>"
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@mail.yehtet.com"
+const RESEND_API_KEY = process.env.RESEND_API_KEY?.trim()
+const FROM_EMAIL = process.env.FROM_EMAIL?.trim() || "Your Borders <noreply@mail.yehtet.com>"
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL?.trim() || "admin@mail.yehtet.com"
 
 interface EmailResult {
   success: boolean
@@ -23,6 +23,20 @@ interface EmailResult {
   emailId?: string
   customerEmailSent?: boolean
   adminNotificationSent?: boolean
+}
+
+function getFriendlyEmailErrorMessage(error: unknown) {
+  const rawMessage = error instanceof Error ? error.message : "Failed to send email"
+
+  if (rawMessage.includes("domain is not verified")) {
+    return "The sender domain is still verifying with Resend, so customer emails are temporarily blocked. Please try again in a few minutes."
+  }
+
+  if (rawMessage.includes("You can only send testing emails to your own email address")) {
+    return "Resend is still in testing mode for this sender, so it cannot email customers yet. Please finish sender-domain verification first."
+  }
+
+  return rawMessage
 }
 
 async function sendEmailViaResend(to: string, subject: string, html: string, text: string): Promise<EmailResult> {
@@ -70,7 +84,7 @@ async function sendEmailViaResend(to: string, subject: string, html: string, tex
     console.error("Email sending error:", error)
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Failed to send email",
+      message: getFriendlyEmailErrorMessage(error),
     }
   }
 }
