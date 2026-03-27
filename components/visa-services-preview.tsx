@@ -2,37 +2,14 @@
 
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { FileCheck, Clock, Shield, ArrowRight, CheckCircle2, Zap } from "lucide-react"
+import { Shield, ArrowRight, CheckCircle2, Zap } from "lucide-react"
 import { useLocale } from "@/lib/locale-context"
 import { convertPrice } from "@/lib/translations"
+import { featuredVisaServices } from "@/lib/visa-service-data"
 
 export function VisaServicesPreview() {
   const { locale, t } = useLocale()
   const isMM = locale === "mm"
-
-  const visaServices = [
-    {
-      icon: FileCheck,
-      title: t.visa.visaExtension,
-      description: t.visa.visaExtensionDesc,
-      price: convertPrice("฿2,500", locale),
-      time: t.visa.processingDays,
-    },
-    {
-      icon: Clock,
-      title: t.visa.tmReport,
-      description: t.visa.tmReportDesc,
-      price: convertPrice("฿500", locale),
-      time: t.visa.sameDay,
-    },
-    {
-      icon: Shield,
-      title: t.visa.ninetyDayReport,
-      description: t.visa.ninetyDayReportDesc,
-      price: convertPrice("฿500", locale),
-      time: t.visa.oneToTwoDays,
-    },
-  ]
 
   const benefits = [t.visa.legalProcess, t.visa.myanmarStaff, t.visa.fastProcessing, t.visa.affordableRates]
 
@@ -75,7 +52,7 @@ export function VisaServicesPreview() {
             </p>
 
             <div className="space-y-4 mb-10">
-              {visaServices.map((service) => (
+              {featuredVisaServices.slice(0, 4).map((service) => (
                 <div
                   key={service.title}
                   className="group flex gap-5 p-5 rounded-xl bg-primary-foreground/8 backdrop-blur-sm border border-primary-foreground/15 hover:bg-primary-foreground/15 transition-all cursor-pointer"
@@ -86,18 +63,20 @@ export function VisaServicesPreview() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1 gap-2">
                       <h3 className={`font-semibold text-lg tracking-tight ${isMM ? "font-myanmar" : ""}`}>
-                        {service.title}
+                        {isMM ? service.titleMM : service.title}
                       </h3>
                       <span className={`text-sm font-bold text-accent shrink-0 ${isMM ? "font-myanmar" : ""}`}>
-                        {t.common.from} {service.price}
+                        {t.common.from} {convertPrice(service.price, locale)}
                       </span>
                     </div>
                     <p className={`text-sm opacity-80 mb-2 leading-relaxed ${isMM ? "font-myanmar" : ""}`}>
-                      {service.description}
+                      {isMM ? service.descriptionMM : service.description}
                     </p>
                     <div className="flex items-center gap-2 text-xs">
                       <Zap className="h-3.5 w-3.5 text-accent" />
-                      <span className={`opacity-75 font-medium ${isMM ? "font-myanmar" : ""}`}>{service.time}</span>
+                      <span className={`opacity-75 font-medium ${isMM ? "font-myanmar" : ""}`}>
+                        {isMM ? service.durationMM : service.duration}
+                      </span>
                     </div>
                   </div>
                 </div>

@@ -12,113 +12,13 @@ import {
   Loader2,
   FileText,
   Mail,
-  Clock,
-  FileCheck,
-  Briefcase,
-  GraduationCap,
-  Users,
-  type LucideIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useLocale } from "@/lib/locale-context"
 import { createVisaBooking } from "@/app/actions/booking"
-
-export interface VisaService {
-  id: string
-  title: string
-  titleMM: string
-  description: string
-  descriptionMM: string
-  price: number
-  duration: string
-  durationMM: string
-  icon: LucideIcon
-  types: string[]
-  typesMM: string[]
-}
-
-export const visaServices: VisaService[] = [
-  {
-    id: "visa-extension",
-    title: "Visa Extension",
-    titleMM: "ဗီဇာ သက်တမ်းတိုး",
-    description: "Extend your stay in Thailand legally with our hassle-free visa extension service.",
-    descriptionMM: "ထိုင်းနိုင်ငံတွင် တရားဝင်နေထိုင်ခွင့် သက်တမ်းတိုးရန် ကူညီပေးပါသည်။",
-    price: 2500,
-    duration: "3-5 business days",
-    durationMM: "၃-၅ ရက်",
-    icon: Clock,
-    types: ["Tourist Visa Extension", "Non-B Extension", "Retirement Extension"],
-    typesMM: ["ခရီးသွားဗီဇာ သက်တမ်းတိုး", "Non-B သက်တမ်းတိုး", "အငြိမ်းစား သက်တမ်းတိုး"],
-  },
-  {
-    id: "tm-30",
-    title: "TM-30 Report",
-    titleMM: "TM-30 အစီရင်ခံစာ",
-    description: "Landlord notification requirement completed quickly and professionally.",
-    descriptionMM: "အိမ်ရှင်အကြောင်းကြားစာ လိုအပ်ချက်ကို လျင်မြန်စွာ ဆောင်ရွက်ပေးပါသည်။",
-    price: 500,
-    duration: "Same day",
-    durationMM: "တစ်နေ့တည်း",
-    icon: FileText,
-    types: ["New Registration", "Address Change", "Re-entry Report"],
-    typesMM: ["မှတ်ပုံတင်အသစ်", "လိပ်စာပြောင်း", "ပြန်ဝင်အစီရင်ခံ"],
-  },
-  {
-    id: "90-day-report",
-    title: "90 Day Report",
-    titleMM: "၉၀ ရက် အစီရင်ခံစာ",
-    description: "Stay compliant with Thailand's 90-day reporting requirement.",
-    descriptionMM: "ထိုင်းနိုင်ငံ၏ ၉၀ ရက် အစီရင်ခံရမည့် လိုအပ်ချက်ကို လိုက်နာဆောင်ရွက်ပေးပါသည်။",
-    price: 500,
-    duration: "Same day",
-    durationMM: "တစ်နေ့တည်း",
-    icon: FileCheck,
-    types: ["Online Submission", "In-person Filing", "Late Report Assistance"],
-    typesMM: ["အွန်လိုင်းတင်သွင်း", "ကိုယ်တိုင်တင်သွင်း", "နောက်ကျတင်သွင်း ကူညီ"],
-  },
-  {
-    id: "work-permit",
-    title: "Work Permit",
-    titleMM: "အလုပ်လုပ်ခွင့်",
-    description: "Complete work permit application and renewal services.",
-    descriptionMM: "အလုပ်လုပ်ခွင့် လျှောက်လွှာနှင့် သက်တမ်းတိုး ဝန်ဆောင်မှုများ။",
-    price: 8000,
-    duration: "7-14 business days",
-    durationMM: "၇-၁၄ ရက်",
-    icon: Briefcase,
-    types: ["New Application", "Renewal", "Job Change", "Company Change"],
-    typesMM: ["လျှောက်လွှာအသစ်", "သက်တမ်းတိုး", "အလုပ်ပြောင်း", "ကုမ္ပဏီပြောင်း"],
-  },
-  {
-    id: "education-visa",
-    title: "Education Visa",
-    titleMM: "ပညာရေး ဗီဇာ",
-    description: "Student visa application for language schools and universities.",
-    descriptionMM: "ဘာသာစကားသင်တန်းနှင့် တက္ကသိုလ်များအတွက် ကျောင်းသားဗီဇာ လျှောက်ထားပေးပါသည်။",
-    price: 15000,
-    duration: "14-21 business days",
-    durationMM: "၁၄-၂၁ ရက်",
-    icon: GraduationCap,
-    types: ["Thai Language School", "University Program", "Vocational Training"],
-    typesMM: ["ထိုင်းဘာသာသင်တန်း", "တက္ကသိုလ်ပရိုဂရမ်", "သက်မွေးပညာသင်တန်း"],
-  },
-  {
-    id: "family-visa",
-    title: "Family Visa",
-    titleMM: "မိသားစု ဗီဇာ",
-    description: "Dependent visa for spouse and children of work permit holders.",
-    descriptionMM: "အလုပ်လုပ်ခွင့်ရှိသူ၏ ဇနီး/ခင်ပွန်းနှင့် ကလေးများအတွက် မိသားစုဗီဇာ။",
-    price: 12000,
-    duration: "14-21 business days",
-    durationMM: "၁၄-၂၁ ရက်",
-    icon: Users,
-    types: ["Spouse Visa", "Child Visa", "Parent Visa"],
-    typesMM: ["ဇနီး/ခင်ပွန်းဗီဇာ", "ကလေးဗီဇာ", "မိဘဗီဇာ"],
-  },
-]
+import type { VisaService } from "@/lib/visa-service-data"
 
 interface VisaBookingModalProps {
   service: VisaService | null

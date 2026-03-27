@@ -7,8 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowRight } from "lucide-react"
 import { useLocale } from "@/lib/locale-context"
 import { convertPrice } from "@/lib/translations"
-import { VisaBookingModal, visaServices } from "./visa-booking-modal"
-import type { VisaService } from "./visa-booking-modal"
+import { VisaBookingModal } from "./visa-booking-modal"
+import { visaServices, type VisaService } from "@/lib/visa-service-data"
 
 export function VisaServicesList() {
   const { locale } = useLocale()
@@ -40,12 +40,16 @@ export function VisaServicesList() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {visaServices.map((service) => (
-            <Card key={service.id} className="border-border hover:shadow-lg transition-shadow relative group">
-              {(service.id === "visa-extension" || service.id === "tm-30" || service.id === "90-day-report") && (
-                <Badge className="absolute -top-3 left-4 bg-accent text-accent-foreground">
-                  {isMM ? "အများဆုံး တောင်းဆိုမှု" : "Most Requested"}
+            <Card
+              key={service.id}
+              className="border-border bg-gradient-to-br from-card via-card to-primary/5 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden"
+            >
+              {service.badge ? (
+                <Badge className="absolute -top-3 left-4 bg-accent text-accent-foreground shadow-lg">
+                  {isMM ? (service.badgeMM ?? service.badge) : service.badge}
                 </Badge>
-              )}
+              ) : null}
+              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-teal-500 to-accent" />
               <CardHeader>
                 <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <service.icon className="h-7 w-7 text-primary" />
@@ -64,6 +68,9 @@ export function VisaServicesList() {
                       {isMM ? "မှ စတင်" : "Starting from"}
                     </p>
                     <p className="font-bold text-primary text-lg">{convertPrice(service.price, locale)}</p>
+                    <p className={`text-xs text-muted-foreground mt-1 ${isMM ? "font-myanmar" : ""}`}>
+                      {isMM ? service.priceNoteMM : service.priceNote}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className={`text-sm text-muted-foreground ${isMM ? "font-myanmar" : ""}`}>
@@ -91,7 +98,7 @@ export function VisaServicesList() {
                   </ul>
                 </div>
                 <Button
-                  className={`w-full bg-gradient-to-r from-primary to-teal-600 hover:opacity-90 ${isMM ? "font-myanmar" : ""}`}
+                  className={`w-full bg-gradient-to-r from-primary via-teal-600 to-accent hover:opacity-95 shadow-lg ${isMM ? "font-myanmar" : ""}`}
                   onClick={() => handleGetStarted(service)}
                 >
                   {isMM ? "စတင်ရန်" : "Get Started"}

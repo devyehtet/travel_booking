@@ -1,0 +1,175 @@
+import {
+  Briefcase,
+  Clock,
+  FileCheck,
+  FileText,
+  GraduationCap,
+  HeartHandshake,
+  RotateCcw,
+  Users,
+  type LucideIcon,
+} from "lucide-react"
+
+export interface VisaService {
+  id: string
+  title: string
+  titleMM: string
+  description: string
+  descriptionMM: string
+  price: number
+  priceNote: string
+  priceNoteMM: string
+  duration: string
+  durationMM: string
+  icon: LucideIcon
+  featured?: boolean
+  badge?: string
+  badgeMM?: string
+  types: string[]
+  typesMM: string[]
+}
+
+export const visaServices: VisaService[] = [
+  {
+    id: "visa-extension",
+    title: "Visa Extension",
+    titleMM: "ဗီဇာ သက်တမ်းတိုး",
+    description: "Fast assistance for tourist, Non-B, and retirement extensions with document review and queue support.",
+    descriptionMM: "Tourist, Non-B နှင့် အငြိမ်းစားဗီဇာ သက်တမ်းတိုးမှုများအတွက် စာရွက်စာတမ်းစစ်ဆေးမှုနှင့် queue support ပါဝင်သော လျင်မြန်သည့် ဝန်ဆောင်မှု။",
+    price: 3900,
+    priceNote: "Includes standard extension filing support",
+    priceNoteMM: "ပုံမှန် extension filing support ပါဝင်သည်",
+    duration: "3-5 business days",
+    durationMM: "၃-၅ ရက်",
+    icon: Clock,
+    featured: true,
+    badge: "Best Value",
+    badgeMM: "အတန်ဆုံး",
+    types: ["Tourist extension", "Non-B extension", "Retirement extension"],
+    typesMM: ["ခရီးသွားဗီဇာ သက်တမ်းတိုး", "Non-B သက်တမ်းတိုး", "အငြိမ်းစား သက်တမ်းတိုး"],
+  },
+  {
+    id: "re-entry-permit",
+    title: "Re-entry Permit",
+    titleMM: "Re-entry Permit",
+    description: "Single-entry or multiple-entry permit support so you can travel and return without losing your visa status.",
+    descriptionMM: "ခရီးသွားပြီး ပြန်ဝင်ရာတွင် ဗီဇာအခြေအနေ မဆုံးရှုံးစေရန် single-entry နှင့် multiple-entry permit များအတွက် ကူညီပေးပါသည်။",
+    price: 1900,
+    priceNote: "From single-entry permit support",
+    priceNoteMM: "Single-entry permit support မှ စတင်",
+    duration: "Same day",
+    durationMM: "တစ်နေ့တည်း",
+    icon: RotateCcw,
+    featured: true,
+    badge: "Popular Add-on",
+    badgeMM: "အများသုံး Add-on",
+    types: ["Single re-entry", "Multiple re-entry", "Airport rush support"],
+    typesMM: ["Single re-entry", "Multiple re-entry", "လေဆိပ် အမြန်ဆောင်ရွက်ပေးမှု"],
+  },
+  {
+    id: "tm-30",
+    title: "TM-30 Report",
+    titleMM: "TM-30 အစီရင်ခံစာ",
+    description: "Landlord notification filing with address review, error checks, and confirmation receipt guidance.",
+    descriptionMM: "လိပ်စာစစ်ဆေးမှု၊ အချက်အလက်မှားယွင်းမှုစစ်ဆေးမှုနှင့် အတည်ပြုစာရွက်အတွက် ကူညီပေးသော landlord notification filing ဝန်ဆောင်မှု။",
+    price: 650,
+    priceNote: "Quick document check included",
+    priceNoteMM: "စာရွက်စာတမ်းစစ်ဆေးမှု ပါဝင်သည်",
+    duration: "Same day",
+    durationMM: "တစ်နေ့တည်း",
+    icon: FileText,
+    featured: true,
+    badge: "Fast Track",
+    badgeMM: "အမြန်ဝန်ဆောင်မှု",
+    types: ["New registration", "Address update", "Arrival stamp update"],
+    typesMM: ["မှတ်ပုံတင်အသစ်", "လိပ်စာပြင်ဆင်မှု", "Arrival stamp update"],
+  },
+  {
+    id: "90-day-report",
+    title: "90 Day Report",
+    titleMM: "၉၀ ရက် အစီရင်ခံစာ",
+    description: "Online or in-person filing support to keep your stay fully compliant with Thai immigration rules.",
+    descriptionMM: "ထိုင်းလူဝင်မှုကြီးကြပ်ရေး စည်းမျဉ်းများနှင့် ကိုက်ညီစေရန် online သို့မဟုတ် in-person filing support ပေးပါသည်။",
+    price: 650,
+    priceNote: "Online and in-person support",
+    priceNoteMM: "Online နှင့် in-person support ပါဝင်သည်",
+    duration: "Same day",
+    durationMM: "တစ်နေ့တည်း",
+    icon: FileCheck,
+    featured: true,
+    badge: "Most Requested",
+    badgeMM: "အများဆုံး တောင်းဆိုမှု",
+    types: ["Online submission", "Immigration filing", "Late-report guidance"],
+    typesMM: ["အွန်လိုင်း တင်သွင်းမှု", "Immigration filing", "နောက်ကျအစီရင်ခံမှု လမ်းညွှန်"],
+  },
+  {
+    id: "work-permit",
+    title: "Work Permit Support",
+    titleMM: "အလုပ်လုပ်ခွင့် ဝန်ဆောင်မှု",
+    description: "End-to-end coordination for new permits, renewals, and company-side paperwork preparation.",
+    descriptionMM: "အလုပ်လုပ်ခွင့်အသစ်၊ သက်တမ်းတိုးမှုနှင့် ကုမ္ပဏီဘက်မှလိုအပ်သော paperwork များအတွက် end-to-end coordination ဝန်ဆောင်မှု။",
+    price: 12900,
+    priceNote: "Service fee, government charges separate",
+    priceNoteMM: "Service fee ဖြစ်ပြီး government charges မပါဝင်ပါ",
+    duration: "7-14 business days",
+    durationMM: "၇-၁၄ ရက်",
+    icon: Briefcase,
+    badge: "Business",
+    badgeMM: "လုပ်ငန်း",
+    types: ["New application", "Renewal", "Job change", "Company document bundle"],
+    typesMM: ["လျှောက်လွှာအသစ်", "သက်တမ်းတိုး", "အလုပ်ပြောင်း", "ကုမ္ပဏီစာရွက်စာတမ်း bundle"],
+  },
+  {
+    id: "education-visa",
+    title: "Education Visa Support",
+    titleMM: "ပညာရေး ဗီဇာ ဝန်ဆောင်မှု",
+    description: "Student visa preparation for language schools and training programs, including school coordination.",
+    descriptionMM: "ဘာသာစကားသင်တန်းများနှင့် training programs များအတွက် school coordination ပါဝင်သော student visa preparation ဝန်ဆောင်မှု။",
+    price: 18900,
+    priceNote: "Service fee, school and government fees separate",
+    priceNoteMM: "Service fee ဖြစ်ပြီး school နှင့် government fees မပါဝင်ပါ",
+    duration: "14-21 business days",
+    durationMM: "၁၄-၂၁ ရက်",
+    icon: GraduationCap,
+    badge: "Long Stay",
+    badgeMM: "ရေရှည်နေထိုင်မှု",
+    types: ["Language school", "University support", "Document translation checklist"],
+    typesMM: ["ဘာသာစကားသင်တန်း", "တက္ကသိုလ် support", "စာရွက်စာတမ်း translation checklist"],
+  },
+  {
+    id: "marriage-visa",
+    title: "Marriage Visa Support",
+    titleMM: "လက်ထပ်ဗီဇာ ဝန်ဆောင်မှု",
+    description: "Document coaching and filing support for marriage-based visa and extension applications.",
+    descriptionMM: "လက်ထပ်အခြေပြု visa နှင့် extension applications များအတွက် document coaching နှင့် filing support ဝန်ဆောင်မှု။",
+    price: 17900,
+    priceNote: "Document-prep package, official fees separate",
+    priceNoteMM: "စာရွက်စာတမ်းပြင်ဆင်မှု package ဖြစ်ပြီး official fees မပါဝင်ပါ",
+    duration: "10-18 business days",
+    durationMM: "၁၀-၁၈ ရက်",
+    icon: HeartHandshake,
+    badge: "Family",
+    badgeMM: "မိသားစု",
+    types: ["Marriage visa", "Extension prep", "Financial document checklist"],
+    typesMM: ["လက်ထပ်ဗီဇာ", "Extension prep", "ငွေကြေးစာရွက်စာတမ်း checklist"],
+  },
+  {
+    id: "retirement-visa",
+    title: "Retirement Visa Support",
+    titleMM: "အငြိမ်းစား ဗီဇာ ဝန်ဆောင်မှု",
+    description: "Careful guidance for retirement visa documents, financial proof, and appointment preparation.",
+    descriptionMM: "အငြိမ်းစားဗီဇာအတွက် documents, financial proof နှင့် appointment preparation များကို စနစ်တကျ ကူညီပေးပါသည်။",
+    price: 21900,
+    priceNote: "Premium prep package, official fees separate",
+    priceNoteMM: "Premium prep package ဖြစ်ပြီး official fees မပါဝင်ပါ",
+    duration: "10-18 business days",
+    durationMM: "၁၀-၁၈ ရက်",
+    icon: Users,
+    badge: "Premium",
+    badgeMM: "ပရီမီယမ်",
+    types: ["Retirement visa", "Annual extension prep", "Banking document guidance"],
+    typesMM: ["အငြိမ်းစားဗီဇာ", "နှစ်စဉ် extension prep", "ဘဏ်စာရွက်စာတမ်း လမ်းညွှန်"],
+  },
+]
+
+export const featuredVisaServices = visaServices.filter((service) => service.featured)
