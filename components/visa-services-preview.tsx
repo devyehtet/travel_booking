@@ -10,6 +10,9 @@ import { featuredVisaServices } from "@/lib/visa-service-data"
 export function VisaServicesPreview() {
   const { locale, t } = useLocale()
   const isMM = locale === "mm"
+  const previewServices = featuredVisaServices.filter((service) =>
+    ["visa-extension", "90-day-report", "education-visa", "ed-plus-university-visa"].includes(service.id),
+  )
 
   const benefits = [t.visa.legalProcess, t.visa.myanmarStaff, t.visa.fastProcessing, t.visa.affordableRates]
 
@@ -52,7 +55,7 @@ export function VisaServicesPreview() {
             </p>
 
             <div className="space-y-4 mb-10">
-              {featuredVisaServices.slice(0, 4).map((service) => (
+              {previewServices.map((service) => (
                 <div
                   key={service.title}
                   className="group flex gap-5 p-5 rounded-xl bg-primary-foreground/8 backdrop-blur-sm border border-primary-foreground/15 hover:bg-primary-foreground/15 transition-all cursor-pointer"
