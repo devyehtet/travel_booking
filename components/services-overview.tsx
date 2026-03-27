@@ -48,8 +48,8 @@ export function ServicesOverview() {
 
   return (
     <section className="py-28 bg-muted/50 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-3xl" />
+      <div className="pointer-events-none absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-3xl" />
 
       <div className="container mx-auto px-4 relative">
         <div className="text-center mb-16">
@@ -78,7 +78,7 @@ export function ServicesOverview() {
               className="group relative bg-card rounded-2xl p-8 border border-border/60 hover:border-primary/30 transition-all duration-500 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1"
             >
               <div
-                className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-[0.03] rounded-2xl transition-opacity duration-500`}
+                className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-[0.03] rounded-2xl transition-opacity duration-500`}
               />
 
               <div
@@ -110,7 +110,7 @@ export function ServicesOverview() {
 
               <Button
                 variant="outline"
-                className={`w-full rounded-full group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all text-sm font-medium bg-transparent ${isMM ? "font-myanmar" : ""}`}
+                className={`relative z-10 w-full rounded-full group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all text-sm font-medium bg-transparent ${isMM ? "font-myanmar" : ""}`}
                 asChild
               >
                 <Link href={service.href}>
