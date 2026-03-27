@@ -121,23 +121,31 @@ export default function AdminBookingsPage() {
 
   async function refreshDashboard() {
     setIsLoading(true)
-    const result = await getAdminDashboardData()
+    try {
+      const result = await getAdminDashboardData()
 
-    if (!result.authenticated) {
+      if (!result.authenticated) {
+        setDashboard({ authenticated: false })
+        setSelectedBooking(null)
+        setPendingUpdate(null)
+        return
+      }
+
+      setDashboard({
+        authenticated: true,
+        tours: result.tours,
+        visas: result.visas,
+        hasDurableStorage: result.hasDurableStorage,
+      })
+    } catch (error) {
+      console.error("Failed to load admin dashboard:", error)
       setDashboard({ authenticated: false })
       setSelectedBooking(null)
       setPendingUpdate(null)
+      setLoginMessage("Dashboard temporarily unavailable. Please refresh and try again.")
+    } finally {
       setIsLoading(false)
-      return
     }
-
-    setDashboard({
-      authenticated: true,
-      tours: result.tours,
-      visas: result.visas,
-      hasDurableStorage: result.hasDurableStorage,
-    })
-    setIsLoading(false)
   }
 
   useEffect(() => {
