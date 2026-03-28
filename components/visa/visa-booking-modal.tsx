@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   X,
   ChevronRight,
@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useLocale } from "@/lib/locale-context"
 import { createVisaBooking } from "@/app/actions/booking"
+import { trackVisaServiceRequestConversion } from "@/lib/gtag"
 import type { VisaService } from "@/lib/visa-service-data"
 
 interface VisaBookingModalProps {
@@ -39,6 +40,7 @@ export function VisaBookingModal({ service, isOpen, onClose }: VisaBookingModalP
   const [copied, setCopied] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
   const [submissionError, setSubmissionError] = useState("")
+  const visaConversionTrackedRef = useRef(false)
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -57,6 +59,7 @@ export function VisaBookingModal({ service, isOpen, onClose }: VisaBookingModalP
 
   useEffect(() => {
     if (isOpen) {
+      visaConversionTrackedRef.current = false
       setStep(1)
       setBookingResult(null)
       setEmailSent(false)
@@ -77,6 +80,19 @@ export function VisaBookingModal({ service, isOpen, onClose }: VisaBookingModalP
       })
     }
   }, [isOpen, isMM])
+
+  useEffect(() => {
+    if (!isOpen || !service || !bookingResult?.success || visaConversionTrackedRef.current) {
+      return
+    }
+
+    trackVisaServiceRequestConversion({
+      value: 1,
+      currency: "THB",
+    })
+
+    visaConversionTrackedRef.current = true
+  }, [bookingResult?.success, isOpen, service])
 
   if (!isOpen || !service) return null
 

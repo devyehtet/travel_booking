@@ -23,6 +23,7 @@ interface AdsConversionEventPayload {
 type GtagEventParams = object
 
 const TRAVEL_BOOKING_CONVERSION_DESTINATION = "AW-17353057075/9w2YCKrBs5EcELPGytJA"
+const VISA_SERVICE_REQUEST_CONVERSION_DESTINATION = "AW-17353057075/p2-CCICKtZEcELPGytJA"
 
 declare global {
   interface Window {
@@ -40,6 +41,16 @@ export function trackTravelBookingLeadConversion(
 ) {
   trackEvent("conversion", {
     send_to: TRAVEL_BOOKING_CONVERSION_DESTINATION,
+    value: payload.value ?? 1,
+    currency: payload.currency ?? "THB",
+  })
+}
+
+export function trackVisaServiceRequestConversion(
+  payload: Partial<Omit<AdsConversionEventPayload, "send_to">> = {},
+) {
+  trackEvent("conversion", {
+    send_to: VISA_SERVICE_REQUEST_CONVERSION_DESTINATION,
     value: payload.value ?? 1,
     currency: payload.currency ?? "THB",
   })
