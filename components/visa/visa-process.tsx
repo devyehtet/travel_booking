@@ -5,25 +5,29 @@ const steps = [
     icon: FileSearch,
     step: "01",
     title: "Consultation",
-    description: "Contact us with your visa needs. We'll assess your situation and recommend the best option.",
+    description:
+      "Contact us with your visa goals. We review your current status and suggest the best route, including ED Visa and ED Plus options when relevant.",
   },
   {
     icon: FileCheck,
     step: "02",
     title: "Document Preparation",
-    description: "We guide you on required documents and help prepare all necessary paperwork.",
+    description:
+      "We prepare your checklist, review supporting papers, and coordinate with schools or universities when your package includes education-based processing.",
   },
   {
     icon: Send,
     step: "03",
     title: "Submission",
-    description: "We submit your application to Thai Immigration on your behalf or accompany you.",
+    description:
+      "We arrange the next filing step, support your booking, and guide you through Immigration, school, or university submission requirements.",
   },
   {
     icon: CheckCircle,
     step: "04",
     title: "Approval",
-    description: "Receive your approved visa or documents. We follow up until completion.",
+    description:
+      "Receive your approved visa, report, or extension with follow-up support until your case is completed and your next renewal timeline is clear.",
   },
 ]
 
@@ -34,7 +38,7 @@ export function VisaProcess() {
         <div className="text-center mb-16">
           <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">How It Works</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Simple 4-step process to handle all your visa and immigration needs
+            Simple 4-step process for extensions, reports, and education visa packages
           </p>
         </div>
 

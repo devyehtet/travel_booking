@@ -10,8 +10,8 @@ export function VisaCTA() {
           <div>
             <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6">Need Visa Help Today?</h2>
             <p className="text-lg opacity-80 mb-8 leading-relaxed">
-              Our Myanmar-speaking team is ready to assist you with any visa or immigration needs. Contact us for a free
-              consultation.
+              Our Myanmar-speaking team is ready to assist with extensions, 90-day reports, ED Visa packages, and ED
+              Plus university planning. Contact us for a free consultation and a clear document checklist.
             </p>
             <div className="space-y-4 mb-8">
               <div className="flex items-center gap-3">
@@ -69,6 +69,12 @@ export function VisaCTA() {
                 <option value="visa-extension" className="text-foreground">
                   VISA Extension
                 </option>
+                <option value="ed-visa" className="text-foreground">
+                  ED Visa
+                </option>
+                <option value="ed-plus-university-visa" className="text-foreground">
+                  ED Plus University Visa
+                </option>
                 <option value="tm30" className="text-foreground">
                   TM-30 Report
                 </option>
@@ -82,6 +88,9 @@ export function VisaCTA() {
                   Other
                 </option>
               </select>
+              <p className="text-sm text-background/70">
+                Education packages start from ฿57,000. Ask us about intake timing and school coordination.
+              </p>
               <Button type="submit" className="w-full" size="lg">
                 Send Inquiry
               </Button>

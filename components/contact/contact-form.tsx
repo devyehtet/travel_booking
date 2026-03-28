@@ -40,7 +40,9 @@ export function ContactForm() {
     <Card className="border-border">
       <CardHeader>
         <CardTitle className="font-serif text-2xl">Send Us a Message</CardTitle>
-        <CardDescription>Fill out the form below and we will get back to you soon.</CardDescription>
+        <CardDescription>
+          Fill out the form below and we will get back to you soon with the right tour or visa support plan.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -81,6 +83,8 @@ export function ContactForm() {
               </optgroup>
               <optgroup label="Visa Services">
                 <option value="visa-extension">VISA Extension</option>
+                <option value="ed-visa">ED Visa</option>
+                <option value="ed-plus-university-visa">ED Plus University Visa</option>
                 <option value="tm30">TM-30 Report</option>
                 <option value="90day">90 Day Report</option>
                 <option value="work-permit">Work Permit</option>
@@ -91,7 +95,12 @@ export function ContactForm() {
 
           <div className="space-y-2">
             <Label htmlFor="message">Message</Label>
-            <Textarea id="message" placeholder="Tell us about your needs... (English or Myanmar)" rows={5} required />
+            <Textarea
+              id="message"
+              placeholder="Tell us about your needs... (English or Myanmar). For ED Visa, include your school or university plan if you have one."
+              rows={5}
+              required
+            />
           </div>
 
           <div className="space-y-2">

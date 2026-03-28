@@ -2,6 +2,16 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 
 const faqs = [
   {
+    question: "ED Visa packages ဘယ်လောက်ကနေ စလဲ?",
+    answer:
+      "Our ED Visa packages start from ฿57,000. The final quote depends on the school, course length, and document requirements. We can check your case first and give you a clear package breakdown before you commit.",
+  },
+  {
+    question: "What is ED Plus University Visa?",
+    answer:
+      "ED Plus University Visa is a university-based education visa route for clients who want a longer-term academic option in Thailand. We help with university coordination, intake timing, admissions paperwork, and the immigration document checklist from start to finish.",
+  },
+  {
     question: "TM-30 ဆိုတာ ဘာလဲ? ဘယ်သူတွေ လိုအပ်သလဲ?",
     answer:
       "TM-30 သည် ထိုင်းနိုင်ငံတွင် နေထိုင်သော နိုင်ငံခြားသားများအတွက် လိပ်စာ စာရင်းသွင်းခြင်း ပုံစံဖြစ်ပါသည်။ ထိုင်းနိုင်ငံသို့ ရောက်ရှိပြီး နာရီ ၂၄ နာရီအတွင်း သို့မဟုတ် လိပ်စာ ပြောင်းရွှေ့တိုင်း သတင်းပို့ရန် လိုအပ်ပါသည်။",

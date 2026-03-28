@@ -38,6 +38,27 @@ export function VisaServicesList() {
           </p>
         </div>
 
+        <div className="mb-10 rounded-3xl border border-primary/15 bg-gradient-to-r from-primary/5 via-background to-accent/5 p-6 shadow-sm">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className={`text-sm font-semibold uppercase tracking-[0.18em] text-primary/80 ${isMM ? "font-myanmar" : ""}`}>
+                {isMM ? "ပညာသင် ဗီဇာ update" : "Education Visa Update"}
+              </p>
+              <h3 className={`mt-1 font-serif text-2xl font-semibold text-foreground ${isMM ? "font-myanmar" : ""}`}>
+                {isMM ? "ED Visa နှင့် ED Plus University Visa ကို ฿57,000 မှ စတင်နိုင်ပါပြီ" : "ED Visa and ED Plus University Visa now start from ฿57,000"}
+              </h3>
+              <p className={`mt-2 text-sm text-muted-foreground ${isMM ? "font-myanmar" : ""}`}>
+                {isMM
+                  ? "School intake timing, university coordination နှင့် document checklist များကို အစမှ စနစ်တကျ ကူညီပေးပါသည်။"
+                  : "We can help with school intake timing, university coordination, and a complete document checklist before you apply."}
+              </p>
+            </div>
+            <div className={`rounded-2xl bg-primary/10 px-4 py-3 text-sm font-medium text-primary ${isMM ? "font-myanmar" : ""}`}>
+              {isMM ? "Free pre-check available" : "Free pre-check available"}
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {visaServices.map((service) => (
             <Card
