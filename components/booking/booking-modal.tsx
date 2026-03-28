@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Users, ChevronLeft, ChevronRight, Check, Copy, Loader2 } from "lucide-react"
 import { useLocale } from "@/lib/locale-context"
-import { trackPurchase } from "@/lib/gtag"
+import { trackPurchase, trackTravelBookingLeadConversion } from "@/lib/gtag"
 import type { Tour } from "@/lib/tour-data"
 import { createTourBooking } from "@/app/actions/booking"
 
@@ -35,7 +35,7 @@ export function BookingModal({ tour, isOpen, onClose }: BookingModalProps) {
   const [copied, setCopied] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
   const [submissionError, setSubmissionError] = useState("")
-  const purchaseTrackedRef = useRef(false)
+  const bookingEventsTrackedRef = useRef(false)
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -52,12 +52,12 @@ export function BookingModal({ tour, isOpen, onClose }: BookingModalProps) {
 
   useEffect(() => {
     if (!isOpen) {
-      purchaseTrackedRef.current = false
+      bookingEventsTrackedRef.current = false
     }
   }, [isOpen])
 
   useEffect(() => {
-    if (!tour || !bookingComplete || !bookingId || purchaseTrackedRef.current) {
+    if (!tour || !bookingComplete || !bookingId || bookingEventsTrackedRef.current) {
       return
     }
 
@@ -77,7 +77,12 @@ export function BookingModal({ tour, isOpen, onClose }: BookingModalProps) {
       ],
     })
 
-    purchaseTrackedRef.current = true
+    trackTravelBookingLeadConversion({
+      value: 1,
+      currency: "THB",
+    })
+
+    bookingEventsTrackedRef.current = true
   }, [bookingComplete, bookingId, formData.numberOfGuests, numericPrice, totalPrice, tour])
 
   if (!tour) {
