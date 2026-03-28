@@ -22,7 +22,7 @@ interface AdsConversionEventPayload {
 
 type GtagEventParams = object
 
-const TRAVEL_BOOKING_CONVERSION_DESTINATION = "AW-17353057075/QD5mCIH1opEcELPGytJA"
+const TRAVEL_BOOKING_CONVERSION_DESTINATION = "AW-17353057075/9w2YCKrBs5EcELPGytJA"
 
 declare global {
   interface Window {
