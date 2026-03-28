@@ -122,7 +122,7 @@ export function VisaServicesList() {
                   className={`w-full bg-gradient-to-r from-primary via-teal-600 to-accent hover:opacity-95 shadow-lg ${isMM ? "font-myanmar" : ""}`}
                   onClick={() => handleGetStarted(service)}
                 >
-                  {isMM ? "စတင်ရန်" : "Get Started"}
+                  {isMM ? "ဗီဇာ ဝန်ဆောင်မှု တောင်းဆိုရန်" : "Request Visa Service"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </CardContent>

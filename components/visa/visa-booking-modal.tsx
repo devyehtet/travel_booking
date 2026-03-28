@@ -574,7 +574,9 @@ export function VisaBookingModal({ service, isOpen, onClose }: VisaBookingModalP
                   </>
                 ) : (
                   <>
-                    <span className={isMM ? "font-myanmar" : ""}>{isMM ? "တောင်းဆိုမှု တင်သွင်းရန်" : "Submit Request"}</span>
+                    <span className={isMM ? "font-myanmar" : ""}>
+                      {isMM ? "ဗီဇာ တောင်းဆိုမှု တင်သွင်းရန်" : "Submit Visa Request"}
+                    </span>
                     <CheckCircle className="h-4 w-4" />
                   </>
                 )}
