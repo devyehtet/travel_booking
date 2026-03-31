@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useLocale } from "@/lib/locale-context"
 import { createVisaBooking } from "@/app/actions/booking"
-import { trackVisaServiceRequestConversion } from "@/lib/gtag"
+import { pushDataLayerEvent, trackVisaServiceRequestConversion } from "@/lib/gtag"
 import type { VisaService } from "@/lib/visa-service-data"
 
 interface VisaBookingModalProps {
@@ -91,8 +91,18 @@ export function VisaBookingModal({ service, isOpen, onClose }: VisaBookingModalP
       currency: "THB",
     })
 
+    pushDataLayerEvent("visa_service_request_submit_success", {
+      request_id: bookingResult.bookingId,
+      value: service.price,
+      currency: "THB",
+      service_id: service.id,
+      service_title: service.title,
+      service_price: service.price,
+      preferred_language: formData.preferredLanguage,
+    })
+
     visaConversionTrackedRef.current = true
-  }, [bookingResult?.success, isOpen, service])
+  }, [bookingResult?.bookingId, bookingResult?.success, formData.preferredLanguage, isOpen, service])
 
   if (!isOpen || !service) return null
 

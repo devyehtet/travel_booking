@@ -22,6 +22,11 @@ interface AdsConversionEventPayload {
 
 type GtagEventParams = object
 
+interface DataLayerEventPayload {
+  event: string
+  [key: string]: unknown
+}
+
 const TRAVEL_BOOKING_CONVERSION_DESTINATION = "AW-18038410405/MR3kCL7OsJEcEKWZsZlD"
 const VISA_SERVICE_REQUEST_CONVERSION_DESTINATION = "AW-18038410405/FguuCOueuJEcEKWZsZlD"
 
@@ -53,6 +58,17 @@ export function trackVisaServiceRequestConversion(
     send_to: VISA_SERVICE_REQUEST_CONVERSION_DESTINATION,
     value: payload.value ?? 1,
     currency: payload.currency ?? "THB",
+  })
+}
+
+export function pushDataLayerEvent(event: string, payload: Omit<DataLayerEventPayload, "event"> = {}) {
+  if (typeof window === "undefined" || !Array.isArray(window.dataLayer)) {
+    return
+  }
+
+  window.dataLayer.push({
+    event,
+    ...payload,
   })
 }
 

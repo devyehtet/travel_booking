@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Users, ChevronLeft, ChevronRight, Check, Copy, Loader2 } from "lucide-react"
 import { useLocale } from "@/lib/locale-context"
-import { trackPurchase, trackTravelBookingLeadConversion } from "@/lib/gtag"
+import { pushDataLayerEvent, trackPurchase, trackTravelBookingLeadConversion } from "@/lib/gtag"
 import type { Tour } from "@/lib/tour-data"
 import { createTourBooking } from "@/app/actions/booking"
 
@@ -80,6 +80,16 @@ export function BookingModal({ tour, isOpen, onClose }: BookingModalProps) {
     trackTravelBookingLeadConversion({
       value: 1,
       currency: "THB",
+    })
+
+    pushDataLayerEvent("tour_booking_submit_success", {
+      booking_id: bookingId,
+      value: totalPrice,
+      currency: "THB",
+      tour_id: String(tour.id),
+      tour_title: tour.title,
+      tour_location: tour.location,
+      guests: Number(formData.numberOfGuests || 1),
     })
 
     bookingEventsTrackedRef.current = true
